@@ -886,6 +886,7 @@
         function filterBookingsByStatus(status) {
             currentStatusFilter = status;
 
+            
             // Обновляем активную вкладку
             const tabs = document.querySelectorAll('#bookings .tab');
             tabs.forEach(tab => tab.classList.remove('active'));
