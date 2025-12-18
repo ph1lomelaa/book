@@ -402,9 +402,18 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        const API_BASE = 'http://127.0.0.1:8000';
+        const API_BASE = 'https://gainless-computably-pablo.ngrok-free.dev';
         let allBookings = [];
         let currentFilter = 'all';
+
+        // Обёртка для fetch с заголовками ngrok
+        async function apiFetch(url, options = {}) {
+            const headers = {
+                'ngrok-skip-browser-warning': '1',
+                ...options.headers
+            };
+            return fetch(url, { ...options, headers });
+        }
 
         // Установка быстрого периода
         function setQuickPeriod(period) {
@@ -442,7 +451,7 @@
             container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Загрузка броней...</p></div>';
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/bookings?start_date=${startDate}&end_date=${endDate}`);
+                const response = await apiFetch(`${API_BASE}/api/admin/bookings?start_date=${startDate}&end_date=${endDate}`);
                 const data = await response.json();
 
                 if (data.ok) {
