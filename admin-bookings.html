@@ -563,9 +563,8 @@
 
         // Инициализация
         window.addEventListener('load', () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('start-date').value = today;
-            document.getElementById('end-date').value = today;
+            setQuickPeriod('today');
+            loadBookings();
         });
     </script>
 </body>
