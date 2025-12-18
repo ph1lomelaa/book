@@ -343,13 +343,13 @@
 <body>
     <!-- Заголовок -->
     <div class="header">
-        <h1>✨ Hickmet Premium</h1>
-        <p>Список всех броней</p>
+        <h1>Hickmet Premium</h1>
+        <p>Список броней</p>
     </div>
 
     <!-- Выбор периода -->
     <div class="period-selector">
-        <div class="period-label">📅 Выберите период</div>
+        <div class="period-label">Выберите период</div>
 
         <div class="date-inputs">
             <input type="date" id="start-date" class="date-input">
@@ -362,7 +362,7 @@
             <button class="period-btn" onclick="setQuickPeriod('month')">Месяц</button>
         </div>
 
-        <button class="load-btn" onclick="loadBookings()">📈 Загрузить брони</button>
+        <button class="load-btn" onclick="loadBookings()">Загрузить брони</button>
     </div>
 
     <!-- Статистика -->
@@ -389,9 +389,9 @@
     <div class="status-filters" id="status-filters" style="display: none;">
         <div class="filter-tabs">
             <button class="filter-tab active" onclick="filterByStatus('all')">Все</button>
-            <button class="filter-tab" onclick="filterByStatus('new')">✅ Активные</button>
-            <button class="filter-tab" onclick="filterByStatus('cancelled')">❌ Отмена</button>
-            <button class="filter-tab" onclick="filterByStatus('rescheduled')">🔄 Перенос</button>
+            <button class="filter-tab" onclick="filterByStatus('new')">Активные</button>
+            <button class="filter-tab" onclick="filterByStatus('cancelled')">Отмена</button>
+            <button class="filter-tab" onclick="filterByStatus('rescheduled')">Перенос</button>
         </div>
     </div>
 
@@ -461,11 +461,11 @@
                     document.getElementById('stats-grid').style.display = 'grid';
                     document.getElementById('status-filters').style.display = 'block';
                 } else {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка загрузки данных</p></div>';
+                    container.innerHTML = '<div class="empty-state"><p>Ошибка загрузки данных</p></div>';
                 }
             } catch (error) {
                 console.error(error);
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div><p>Ошибка соединения с сервером</p></div>';
+                container.innerHTML = '<div class="empty-state"><p>Ошибка соединения с сервером</p></div>';
             }
         }
 
@@ -492,7 +492,7 @@
             }
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Броней не найдено</p></div>';
+                container.innerHTML = '<div class="empty-state"><p>Броней не найдено</p></div>';
                 return;
             }
 
@@ -501,8 +501,8 @@
             filtered.forEach(booking => {
                 const statusClass = booking.status === 'new' ? 'status-active' :
                                    booking.status === 'cancelled' ? 'status-cancelled' : 'status-rescheduled';
-                const statusText = booking.status === 'new' ? '✅ Активная' :
-                                  booking.status === 'cancelled' ? '❌ Отменена' : '🔄 Перенос';
+                const statusText = booking.status === 'new' ? 'Активная' :
+                                  booking.status === 'cancelled' ? 'Отменена' : 'Перенос';
 
                 const createdDate = new Date(booking.created_at).toLocaleDateString('ru-RU');
                 const createdTime = new Date(booking.created_at).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
@@ -516,29 +516,29 @@
 
                         <div class="booking-details">
                             <div class="booking-detail">
-                                📦 <strong>${booking.package_name}</strong>
+                                Пакет: <strong>${booking.package_name}</strong>
                             </div>
                             <div class="booking-detail">
-                                ✈️ <strong>${booking.sheet_name}</strong>
+                                Лист: <strong>${booking.sheet_name}</strong>
                             </div>
                             <div class="booking-detail">
-                                🛏️ Тип номера: <strong>${booking.room_type || 'Не указан'}</strong>
+                                Тип номера: <strong>${booking.room_type || 'Не указан'}</strong>
                             </div>
                             <div class="booking-detail">
-                                💰 Цена: <strong>${booking.price} тг</strong>
+                                Цена: <strong>${booking.price} тг</strong>
                             </div>
                             <div class="booking-detail">
-                                📅 Создано: <strong>${createdDate} в ${createdTime}</strong>
+                                Создано: <strong>${createdDate} в ${createdTime}</strong>
                             </div>
                             ${booking.notes ? `
                             <div class="booking-detail">
-                                📝 Примечания: <strong>${booking.notes}</strong>
+                                Примечания: <strong>${booking.notes}</strong>
                             </div>
                             ` : ''}
                         </div>
 
                         <div class="manager-tag">
-                            👤 Менеджер: ${booking.manager_name}
+                            Менеджер: ${booking.manager_name}
                         </div>
                     </div>
                 `;
