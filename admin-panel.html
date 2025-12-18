@@ -375,29 +375,26 @@
     <div class="container">
         <!-- HICKMET PREMIUM HEADER -->
         <div class="app-header">
-            <h1>✨ Hickmet Premium</h1>
-            <p>Админ Панель - Управление и аналитика</p>
+            <h1>Hickmet Premium</h1>
         </div>
 
         <!-- TABS -->
         <div class="header">
             <div class="tabs">
-                <button class="tab active" onclick="showTab('overview')">📊 Общая статистика</button>
-                <button class="tab" onclick="showTab('managers')">👥 Менеджеры</button>
-                <button class="tab" onclick="showTab('bookings')">📋 Список броней</button>
-                <button class="tab" onclick="showTab('packages')">📦 Поиск пакетов</button>
-                <button class="tab" onclick="showTab('create')">➕ Создать бронь</button>
+                <button class="tab active" onclick="showTab('overview')">Общая статистика</button>
+                <button class="tab" onclick="showTab('managers')">Менеджеры</button>
+                <button class="tab" onclick="showTab('packages')">Поиск пакетов</button>
             </div>
         </div>
 
         <!-- ОБЩАЯ СТАТИСТИКА -->
         <div id="overview" class="content-section active">
-            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">📊 Статистика продаж</h2>
+            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">Статистика продаж</h2>
 
             <div class="date-selector">
                 <input type="date" id="start-date" />
                 <input type="date" id="end-date" />
-                <button class="btn" onclick="loadAnalytics()">📈 Загрузить</button>
+                <button class="btn" onclick="loadAnalytics()">Загрузить</button>
                 <button class="btn btn-secondary" onclick="setQuickPeriod('today')">Сегодня</button>
                 <button class="btn btn-secondary" onclick="setQuickPeriod('week')">Неделя</button>
                 <button class="btn btn-secondary" onclick="setQuickPeriod('month')">Месяц</button>
@@ -408,20 +405,20 @@
             </div>
 
             <div class="chart-container">
-                <h3 style="margin-bottom: 15px; color: var(--accent-dark);">📈 Динамика продаж</h3>
+                <h3 style="margin-bottom: 15px; color: var(--accent-dark);">Динамика продаж</h3>
                 <canvas id="salesChart"></canvas>
             </div>
 
             <div class="table-container">
-                <h3 style="margin: 20px 0; color: var(--accent-dark);">🏆 ТОП-10 Пакетов</h3>
+                <h3 style="margin: 20px 0; color: var(--accent-dark);">ТОП-10 Пакетов</h3>
                 <div id="top-packages-container" style="max-height: 400px; overflow-y: auto;">
                     <!-- Таблица пакетов -->
                 </div>
-                <button class="expand-btn" onclick="expandPackages()">📋 Показать все пакеты</button>
+                <button class="expand-btn" onclick="expandPackages()">Показать все пакеты</button>
             </div>
 
             <div class="table-container">
-                <h3 style="margin: 20px 0; color: var(--accent-dark);">👤 Рейтинг менеджеров</h3>
+                <h3 style="margin: 20px 0; color: var(--accent-dark);">Рейтинг менеджеров</h3>
                 <table id="managers-rating">
                     <!-- Таблица менеджеров -->
                 </table>
@@ -430,9 +427,9 @@
 
         <!-- МЕНЕДЖЕРЫ -->
         <div id="managers" class="content-section">
-            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">👥 Менеджеры</h2>
+            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">Менеджеры</h2>
 
-            <input type="text" class="search-box" placeholder="🔍 Поиск менеджера..." id="manager-search" onkeyup="filterManagers()">
+            <input type="text" class="search-box" placeholder="Поиск менеджера..." id="manager-search" onkeyup="filterManagers()">
 
             <div class="date-selector">
                 <input type="date" id="manager-start-date" />
@@ -452,11 +449,11 @@
 
         <!-- ПОИСК ПАКЕТОВ -->
         <div id="packages" class="content-section">
-            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">📦 Поиск пакетов по дате</h2>
+            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">Поиск пакетов по дате</h2>
 
             <div class="date-selector">
                 <input type="text" id="package-search-date" placeholder="Введите дату (ДД.ММ)" />
-                <button class="btn" onclick="searchPackages()">🔍 Найти</button>
+                <button class="btn" onclick="searchPackages()">Найти</button>
             </div>
 
             <div id="packages-results">
@@ -464,37 +461,6 @@
             </div>
         </div>
 
-        <!-- СПИСОК БРОНЕЙ -->
-        <div id="bookings" class="content-section">
-            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">📋 Список броней</h2>
-
-            <div class="date-selector">
-                <input type="date" id="bookings-start-date" />
-                <input type="date" id="bookings-end-date" />
-                <button class="btn" onclick="loadAllBookings()">📈 Загрузить</button>
-                <button class="btn btn-secondary" onclick="setBookingsPeriod('today')">Сегодня</button>
-                <button class="btn btn-secondary" onclick="setBookingsPeriod('week')">Неделя</button>
-                <button class="btn btn-secondary" onclick="setBookingsPeriod('month')">Месяц</button>
-            </div>
-
-            <!-- Навигация по статусам -->
-            <div class="tabs" style="margin-bottom: 20px;">
-                <button class="tab active" onclick="filterBookingsByStatus('all')">Все брони</button>
-                <button class="tab" onclick="filterBookingsByStatus('active')">✅ Активные</button>
-                <button class="tab" onclick="filterBookingsByStatus('cancelled')">❌ Отмена</button>
-                <button class="tab" onclick="filterBookingsByStatus('rescheduled')">🔄 Перенос</button>
-            </div>
-
-            <div id="bookings-list">
-                <!-- Список броней -->
-            </div>
-        </div>
-
-        <!-- СОЗДАТЬ БРОНЬ -->
-        <div id="create" class="content-section">
-            <h2 style="margin-bottom: 20px; color: var(--accent-dark);">➕ Создать бронь</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 20px;">Функция создания брони будет доступна в следующей версии</p>
-        </div>
     </div>
 
     <script>
@@ -688,10 +654,10 @@
                     data.managers.forEach(manager => {
                         html += `
                             <div class="manager-card" onclick="showManagerDetail(${manager.telegram_id}, '${manager.full_name}')">
-                                <h3>👤 ${manager.full_name}</h3>
+                                <h3>${manager.full_name}</h3>
                                 <div class="manager-stats">
-                                    <span>🔑 ID: ${manager.telegram_id}</span>
-                                    <span>👔 Роль: ${manager.role}</span>
+                                    <span>ID: ${manager.telegram_id}</span>
+                                    <span>Роль: ${manager.role}</span>
                                 </div>
                             </div>
                         `;
@@ -717,10 +683,10 @@
 
                 if (data.ok) {
                     let html = `
-                        <h2 style="margin: 20px 0; color: var(--accent-dark);">👤 ${managerName}</h2>
+                        <h2 style="margin: 20px 0; color: var(--accent-dark);">${managerName}</h2>
                         <div class="stats-grid">
                             <div class="stat-card">
-                                <h3>Всего</h3>
+                                <h3>Всего броней</h3>
                                 <div class="value">${data.total}</div>
                             </div>
                             <div class="stat-card" style="background: linear-gradient(135deg, #C4B5A7 0%, #9B8474 100%);">
@@ -733,32 +699,23 @@
                             </div>
                         </div>
 
-                        <h3 style="margin: 20px 0; color: var(--accent-dark);">📦 ТОП пакетов менеджера:</h3>
-                        <table>
-                            <thead><tr><th>Пакет</th><th>Продаж</th></tr></thead>
-                            <tbody>
+                        <h3 style="margin: 20px 0; color: var(--accent-dark);">История броней:</h3>
                     `;
 
-                    data.top_packages.forEach(([pkg, count]) => {
-                        html += `<tr><td>${pkg}</td><td><strong>${count}</strong></td></tr>`;
-                    });
+                    data.bookings.forEach(booking => {
+                        const statusBadge = booking.status === 'cancelled' ?
+                            '<span class="badge badge-danger">Отменено</span>' :
+                            '<span class="badge badge-success">Активно</span>';
 
-                    html += `
-                            </tbody>
-                        </table>
+                        const createdDate = booking.created_at ? new Date(booking.created_at).toLocaleDateString('ru-RU') : '-';
 
-                        <h3 style="margin: 20px 0; color: var(--accent-dark);">📋 Последние брони:</h3>
-                    `;
-
-                    data.bookings.slice(0, 10).forEach(booking => {
                         html += `
                             <div class="booking-item">
                                 <h4>${booking.guest_last_name} ${booking.guest_first_name}</h4>
-                                <p>📦 ${booking.package_name}</p>
-                                <p>✈️ ${booking.sheet_name}</p>
-                                <p>💰 ${booking.price} |
-                                ${booking.status === 'cancelled' ? '<span class="badge badge-danger">Отменено</span>' : '<span class="badge badge-success">Активно</span>'}
-                                </p>
+                                <p>Пакет: ${booking.package_name}</p>
+                                <p>Лист: ${booking.sheet_name}</p>
+                                <p>Цена: ${booking.price} тг | ${statusBadge}</p>
+                                <p style="font-size: 12px; color: var(--text-secondary);">Создано: ${createdDate}</p>
                             </div>
                         `;
                     });
@@ -796,9 +753,9 @@
                         data.packages.forEach(pkg => {
                             html += `
                                 <div class="booking-item">
-                                    <h4>📦 ${pkg.package_name}</h4>
-                                    <p>✈️ ${pkg.sheet_name}</p>
-                                    <p>👥 Продано: <strong>${pkg.count}</strong></p>
+                                    <h4>${pkg.package_name}</h4>
+                                    <p>Лист: ${pkg.sheet_name}</p>
+                                    <p>Продано: <strong>${pkg.count}</strong></p>
                                 </div>
                             `;
                         });
@@ -918,11 +875,11 @@
         // Получение badge для статуса
         function getStatusBadge(status) {
             const statusMap = {
-                'new': '<span class="badge badge-success">✅ Активная</span>',
-                'cancelled': '<span class="badge badge-danger">❌ Отменена</span>',
-                'rescheduled': '<span class="badge" style="background: #FFF3E0; color: #E65100;">🔄 Перенос</span>'
+                'new': '<span class="badge badge-success">Активная</span>',
+                'cancelled': '<span class="badge badge-danger">Отменена</span>',
+                'rescheduled': '<span class="badge" style="background: #FFF3E0; color: #E65100;">Перенос</span>'
             };
-            return statusMap[status] || '<span class="badge badge-success">✅ Активная</span>';
+            return statusMap[status] || '<span class="badge badge-success">Активная</span>';
         }
 
         // Фильтрация броней по статусу
