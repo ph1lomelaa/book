@@ -503,11 +503,20 @@
         tg.expand();
 
         // API базовый URL (поменяйте на ваш)
-        const API_BASE = 'http://127.0.0.1:8000';
+        const API_BASE = 'https://gainless-computably-pablo.ngrok-free.dev';
 
         let salesChart = null;
         let allBookingsData = [];
         let currentStatusFilter = 'all';
+
+        // Обёртка для fetch с заголовками ngrok
+        async function apiFetch(url, options = {}) {
+            const headers = {
+                'ngrok-skip-browser-warning': '1',
+                ...options.headers
+            };
+            return fetch(url, { ...options, headers });
+        }
 
         // Переключение табов
         function showTab(tabName) {
@@ -562,7 +571,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/analytics?start_date=${startDate}&end_date=${endDate}`);
+                const response = await apiFetch(`${API_BASE}/api/admin/analytics?start_date=${startDate}&end_date=${endDate}`);
                 const data = await response.json();
 
                 if (data.ok) {
@@ -671,7 +680,7 @@
             container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Загрузка...</p></div>';
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/managers`);
+                const response = await apiFetch(`${API_BASE}/api/admin/managers`);
                 const data = await response.json();
 
                 if (data.ok) {
@@ -703,7 +712,7 @@
             const endDate = document.getElementById('manager-end-date').value || new Date().toISOString().split('T')[0];
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/manager/${managerId}?start_date=${startDate}&end_date=${endDate}`);
+                const response = await apiFetch(`${API_BASE}/api/admin/manager/${managerId}?start_date=${startDate}&end_date=${endDate}`);
                 const data = await response.json();
 
                 if (data.ok) {
@@ -775,7 +784,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/search/packages?date=${dateStr}`);
+                const response = await apiFetch(`${API_BASE}/api/admin/search/packages?date=${dateStr}`);
                 const data = await response.json();
 
                 if (data.ok) {
@@ -856,7 +865,7 @@
             container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Загрузка броней...</p></div>';
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/bookings?start_date=${startDate}&end_date=${endDate}`);
+                const response = await apiFetch(`${API_BASE}/api/admin/bookings?start_date=${startDate}&end_date=${endDate}`);
                 const data = await response.json();
 
                 if (data.ok) {
