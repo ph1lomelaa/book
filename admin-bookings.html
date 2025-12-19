@@ -295,6 +295,49 @@
             margin-left: 4px;
         }
 
+        .details-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 12px 0;
+        }
+
+        .details-btn:hover {
+            border-color: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .details-btn.active {
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
+            color: white;
+            border-color: var(--accent-dark);
+        }
+
+        .booking-details-full {
+            display: none;
+            padding: 12px 0;
+            border-top: 1px dashed rgba(0,0,0,0.1);
+        }
+
+        .booking-details-full.show {
+            display: block;
+        }
+
+        .details-section {
+            margin-bottom: 12px;
+        }
+
+        .details-section:last-child {
+            margin-bottom: 0;
+        }
+
         .manager-tag {
             margin-top: 8px;
             padding: 8px 12px;
@@ -406,6 +449,18 @@
         let allBookings = [];
         let currentFilter = 'all';
 
+        const normalizeStatus = (value) => (value || '').toLowerCase();
+        const formatDateTime = (value) => {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            const dateStr = date.toLocaleDateString('ru-RU');
+            const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            return `${dateStr} в ${timeStr}`;
+        };
+        const safeText = (value, fallback = '-') => (value && value !== '-' ? value : fallback);
+        const safeValue = safeText;
+
         // Обёртка для fetch с заголовками ngrok
         async function apiFetch(url, options = {}) {
             const headers = {
@@ -472,9 +527,9 @@
         // Обновление статистики
         function updateStats() {
             const total = allBookings.length;
-            const active = allBookings.filter(b => b.status === 'new').length;
-            const cancelled = allBookings.filter(b => b.status === 'cancelled').length;
-            const rescheduled = allBookings.filter(b => b.status === 'rescheduled').length;
+            const active = allBookings.filter(b => normalizeStatus(b.status) === 'new').length;
+            const cancelled = allBookings.filter(b => normalizeStatus(b.status) === 'cancelled').length;
+            const rescheduled = allBookings.filter(b => normalizeStatus(b.status) === 'rescheduled').length;
 
             document.getElementById('total-count').textContent = total;
             document.getElementById('active-count').textContent = active;
@@ -488,7 +543,7 @@
             let filtered = allBookings;
 
             if (currentFilter !== 'all') {
-                filtered = allBookings.filter(b => b.status === currentFilter);
+                filtered = allBookings.filter(b => normalizeStatus(b.status) === currentFilter);
             }
 
             if (filtered.length === 0) {
@@ -496,56 +551,98 @@
                 return;
             }
 
-            let html = '<div class="bookings-container">';
+            const cards = filtered.map((booking, index) => {
+                const status = normalizeStatus(booking.status);
+                const statusClass = status === 'cancelled'
+                    ? 'status-cancelled'
+                    : status === 'rescheduled'
+                        ? 'status-rescheduled'
+                        : 'status-active';
+                const statusText = status === 'cancelled'
+                    ? 'Отменена'
+                    : status === 'rescheduled'
+                        ? 'Перенос'
+                        : 'Активная';
 
-            filtered.forEach(booking => {
-                const statusClass = booking.status === 'new' ? 'status-active' :
-                                   booking.status === 'cancelled' ? 'status-cancelled' : 'status-rescheduled';
-                const statusText = booking.status === 'new' ? 'Активная' :
-                                  booking.status === 'cancelled' ? 'Отменена' : 'Перенос';
+                const createdLabel = formatDateTime(booking.created_at);
+                const guestNameRaw = `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.trim();
+                const guestName = safeValue(guestNameRaw, 'Без имени');
+                const packageName = safeValue(booking.package_name);
+                const sheetName = safeValue(booking.sheet_name);
+                const roomType = safeValue(booking.room_type || booking.placement_type);
+                const phone = safeValue(booking.client_phone);
+                const price = safeValue(booking.price);
+                const priceLabel = price === '-' ? '-' : `${price} тг`;
+                const amountPaid = safeValue(booking.amount_paid);
+                const comment = safeValue(booking.comment);
+                const managerName = safeValue(booking.manager_name || booking.manager_name_text);
+                const gender = booking.gender === 'F' ? 'Женский' : 'Мужской';
+                const dateOfBirth = safeValue(booking.date_of_birth);
+                const passportNum = safeValue(booking.passport_num);
+                const passportExpiry = safeValue(booking.passport_expiry);
+                const iin = safeValue(booking.guest_iin);
+                const mealType = safeValue(booking.meal_type);
+                const visaStatus = safeValue(booking.visa_status);
+                const avia = safeValue(booking.avia);
+                const train = safeValue(booking.train);
+                const departureCity = safeValue(booking.departure_city);
+                const region = safeValue(booking.region);
+                const source = safeValue(booking.source);
 
-                const createdDate = new Date(booking.created_at).toLocaleDateString('ru-RU');
-                const createdTime = new Date(booking.created_at).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
-
-                html += `
+                return `
                     <div class="booking-card">
                         <div class="booking-header">
-                            <div class="booking-guest">${booking.guest_last_name} ${booking.guest_first_name}</div>
+                            <div class="booking-guest">${guestName}</div>
                             <span class="status-badge ${statusClass}">${statusText}</span>
                         </div>
 
                         <div class="booking-details">
-                            <div class="booking-detail">
-                                Пакет: <strong>${booking.package_name}</strong>
+                            <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
+                            <div class="booking-detail">Пакет: <strong>${packageName}</strong></div>
+                            <div class="booking-detail">Дата: <strong>${sheetName}</strong></div>
+                            <div class="booking-detail">Комната: <strong>${roomType}</strong></div>
+                        </div>
+
+                        <button class="details-btn" onclick="toggleDetails('details-${index}', this)">
+                            📋 Подробнее
+                        </button>
+
+                        <div class="booking-details-full" id="details-${index}">
+                            <div class="details-section">
+                                <div class="booking-detail">Пол: <strong>${gender}</strong></div>
+                                <div class="booking-detail">Дата рождения: <strong>${dateOfBirth}</strong></div>
+                                <div class="booking-detail">Паспорт: <strong>${passportNum}</strong></div>
+                                <div class="booking-detail">Срок действия: <strong>${passportExpiry}</strong></div>
+                                <div class="booking-detail">ИИН: <strong>${iin}</strong></div>
                             </div>
-                            <div class="booking-detail">
-                                Лист: <strong>${booking.sheet_name}</strong>
+
+                            <div class="details-section">
+                                <div class="booking-detail">Питание: <strong>${mealType}</strong></div>
+                                <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
+                                <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
+                                ${visaStatus !== '-' ? `<div class=\"booking-detail\">Виза: <strong>${visaStatus}</strong></div>` : ''}
+                                ${avia !== '-' ? `<div class=\"booking-detail\">Авиа: <strong>${avia}</strong></div>` : ''}
+                                ${train !== '-' ? `<div class=\"booking-detail\">Поезд: <strong>${train}</strong></div>` : ''}
+                                ${region !== '-' ? `<div class=\"booking-detail\">Регион: <strong>${region}</strong></div>` : ''}
+                                ${departureCity !== '-' ? `<div class=\"booking-detail\">Город вылета: <strong>${departureCity}</strong></div>` : ''}
+                                ${source !== '-' ? `<div class=\"booking-detail\">Источник: <strong>${source}</strong></div>` : ''}
+                                <div class="booking-detail">Создано: <strong>${createdLabel}</strong></div>
                             </div>
-                            <div class="booking-detail">
-                                Тип номера: <strong>${booking.room_type || 'Не указан'}</strong>
-                            </div>
-                            <div class="booking-detail">
-                                Цена: <strong>${booking.price} тг</strong>
-                            </div>
-                            <div class="booking-detail">
-                                Создано: <strong>${createdDate} в ${createdTime}</strong>
-                            </div>
-                            ${booking.comment ? `
-                                <div class="booking-detail">
-                                    Примечания: <strong>${booking.comment}</strong>
-                                </div>
-                            ` : ''}
+
+                            ${comment !== '-' ? `
+                            <div class="details-section">
+                                <div class="booking-detail">Комментарий: <strong>${comment}</strong></div>
+                            </div>` : ''}
                         </div>
 
                         <div class="manager-tag">
-                            Менеджер: ${booking.manager_name}
+                            Менеджер: ${managerName}
                         </div>
                     </div>
                 `;
-            });
+            }).join('');
 
-            html += '</div>';
-            container.innerHTML = html;
+            container.innerHTML = `<div class="bookings-container">${cards}</div>`;
         }
 
         // Фильтрация по статусу
@@ -559,6 +656,21 @@
             event.target.classList.add('active');
 
             renderBookings();
+        }
+
+        function toggleDetails(detailId, btnElement) {
+            const details = document.getElementById(detailId);
+            if (!details) return;
+            const button = btnElement || event.currentTarget;
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                button.classList.remove('active');
+                button.innerHTML = '📋 Подробнее';
+            } else {
+                details.classList.add('show');
+                button.classList.add('active');
+                button.innerHTML = '🔼 Скрыть';
+            }
         }
 
         // Инициализация
