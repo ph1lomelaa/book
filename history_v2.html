@@ -306,6 +306,34 @@
             gap: 10px;
             margin-bottom: 12px;
         }
+
+        .detail-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .detail-item {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+        
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 4px;
+        }
         
         .info-group {
             background: var(--bg-secondary);
@@ -518,6 +546,8 @@
     let selectedBooking = null;
     let packagesData = {};
 
+    const normalizeStatus = (value) => (value || '').toLowerCase().trim();
+
     async function init() {
         const user = tg.initDataUnsafe?.user;
         if (urlManagerId) {
@@ -559,6 +589,7 @@
         packagesData = {};
         
         allBookings.forEach(booking => {
+            const status = normalizeStatus(booking.status);
             const pkgName = booking.package_name || 'Без пакета';
             if (!packagesData[pkgName]) {
                 packagesData[pkgName] = {
@@ -570,7 +601,7 @@
             }
             
             packagesData[pkgName].total++;
-            if (booking.status === 'cancelled') {
+            if (status === 'cancelled') {
                 packagesData[pkgName].cancelled++;
             } else {
                 packagesData[pkgName].active++;
@@ -580,8 +611,8 @@
 
     function updateStats() {
         const total = allBookings.length;
-        const active = allBookings.filter(b => b.status !== 'cancelled').length;
-        const cancelled = allBookings.filter(b => b.status === 'cancelled').length;
+        const active = allBookings.filter(b => normalizeStatus(b.status) !== 'cancelled').length;
+        const cancelled = allBookings.filter(b => normalizeStatus(b.status) === 'cancelled').length;
         const packages = Object.keys(packagesData).length;
         
         document.getElementById('stat-total').textContent = total;
@@ -603,7 +634,7 @@
                     : pkg.cancelled;
             
             return `
-                <div class="package-item" onclick="setPackageFilter('${pkg.name.replace(/'/g, "\\'")}')">
+                <div class="package-item" onclick="setPackageFilter('${pkg.name.replace(/'/g, "\\'")}', this)">
                     <span class="package-name" title="${pkg.name}">
                         ${pkg.name.length > 35 ? pkg.name.substring(0, 35) + '...' : pkg.name}
                     </span>
@@ -625,13 +656,15 @@
         applyFilters();
     }
 
-    function setPackageFilter(packageName) {
+    function setPackageFilter(packageName, element) {
         currentPackageFilter = packageName;
         
         document.querySelectorAll('.package-item').forEach(item => {
             item.classList.remove('active');
         });
-        event.target.closest('.package-item').classList.add('active');
+        if (element) {
+            element.classList.add('active');
+        }
         
         const info = document.getElementById('selected-filter-info');
         const text = document.getElementById('selected-filter-text');
@@ -665,8 +698,9 @@
         const searchText = document.getElementById('search-input').value.toLowerCase();
         
         filteredBookings = allBookings.filter(booking => {
-            if (currentStatusFilter === 'active' && booking.status === 'cancelled') return false;
-            if (currentStatusFilter === 'cancelled' && booking.status !== 'cancelled') return false;
+            const status = normalizeStatus(booking.status);
+            if (currentStatusFilter === 'active' && status === 'cancelled') return false;
+            if (currentStatusFilter === 'cancelled' && status !== 'cancelled') return false;
             if (currentPackageFilter && booking.package_name !== currentPackageFilter) return false;
             
             if (searchText) {
@@ -705,7 +739,8 @@
     }
 
     function renderBookingCard(booking) {
-        const cancelled = booking.status === 'cancelled';
+        const status = normalizeStatus(booking.status);
+        const cancelled = status === 'cancelled';
         const cardClass = cancelled ? 'booking-card cancelled' : 'booking-card';
         const statusClass = cancelled ? 'booking-status status-cancelled' : 'booking-status status-new';
         const statusText = cancelled ? 'Отменено' : 'Активна';
@@ -816,8 +851,9 @@
             </div>
         `;
         
-        document.getElementById('cancel-btn').style.display = booking.status === 'cancelled' ? 'none' : 'inline-flex';
-        document.getElementById('reschedule-btn').style.display = booking.status === 'cancelled' ? 'none' : 'inline-flex';
+        const status = normalizeStatus(booking.status);
+        document.getElementById('cancel-btn').style.display = status === 'cancelled' ? 'none' : 'inline-flex';
+        document.getElementById('reschedule-btn').style.display = status === 'cancelled' ? 'none' : 'inline-flex';
         
         document.getElementById('detail-modal').classList.add('active');
     }
