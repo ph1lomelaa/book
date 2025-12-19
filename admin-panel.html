@@ -938,7 +938,7 @@
             if (status === 'all') {
                 filteredBookings = allBookingsData;
             } else if (status === 'active') {
-                filteredBookings = allBookingsData.filter(b => b.status === 'new');
+                filteredBookings = allBookingsData.filter(b => b.status === 'new'); 
             } else {
                 filteredBookings = allBookingsData.filter(b => b.status === status);
             }
