@@ -445,14 +445,14 @@
         async function loadTables() {
             showLoading();
             try {
-                const response = await fetch(`${API_URL}/api/packages`, {
+                const response = await fetch(`${API_URL}/api/care/tables`, {
                     headers: {"ngrok-skip-browser-warning": "1"}
                 });
                 const data = await response.json();
                 hideLoading();
 
                 if (!data.ok || !data.tables) {
-                    showError('Не удалось загрузить таблицы');
+                    showError(data.error || 'Не удалось загрузить таблицы');
                     return;
                 }
 
@@ -490,14 +490,14 @@
         async function loadSheets() {
             showLoading();
             try {
-                const response = await fetch(`${API_URL}/api/packages?table_id=${state.selectedTableId}`, {
+                const response = await fetch(`${API_URL}/api/care/sheets?table_id=${encodeURIComponent(state.selectedTableId)}`, {
                     headers: {"ngrok-skip-browser-warning": "1"}
                 });
                 const data = await response.json();
                 hideLoading();
 
                 if (!data.ok || !data.sheets) {
-                    showError('Не удалось загрузить даты');
+                    showError(data.error || 'Не удалось загрузить даты');
                     return;
                 }
 
