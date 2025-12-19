@@ -416,7 +416,7 @@
                 if (booking.passport_image_path) {
                     html += `
                         <img
-                            src="${API_URL}/api/care/passport-photo/${booking.id}"
+                            src="${API_URL}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1"
                             alt="Паспорт"
                             class="passport-image"
                             onerror="this.style.display='none'"
