@@ -127,6 +127,50 @@
             box-shadow: 0 6px 16px rgba(107, 93, 82, 0.3);
         }
 
+        .manual-search {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .manual-search h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-dark);
+            margin-bottom: 12px;
+        }
+
+        .manual-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .manual-row input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .manual-row input:focus {
+            border-color: var(--accent-brown);
+            background: #fff;
+            outline: none;
+        }
+
+        .manual-row .btn {
+            width: auto;
+            min-width: 120px;
+            padding: 12px 20px;
+        }
+
         .btn-secondary {
             background: var(--bg-card);
             color: var(--text-primary);
@@ -146,8 +190,9 @@
         }
 
         .btn-phones {
-            background: linear-gradient(135deg, #28a745 0%, #20803a 100%);
-            margin-top: 20px;
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
+            margin-top: 0;
+            margin-bottom: 20px;
         }
 
         .section-title {
@@ -346,6 +391,15 @@
         <p>Списки по пакетам</p>
     </div>
 
+    <div class="manual-search">
+        <h3>Быстрый поиск пакетов по дате</h3>
+        <div class="manual-row">
+            <input id="manualDateInput" type="text" placeholder="Например, 13.12">
+            <button class="btn btn-secondary" style="margin:0;" onclick="manualSearchPackages()">Найти</button>
+        </div>
+        <div id="manualPackagesList"></div>
+    </div>
+
     <div id="stepIndicator" class="step-indicator"></div>
 
     <div id="loadingDiv" class="loading hidden">
@@ -379,8 +433,8 @@
     <div id="bookingsSection" class="hidden">
         <button class="btn btn-back" onclick="backToPackages()">← Назад к пакетам</button>
         <div class="section-title" id="bookingsTitle">Список паломников:</div>
-        <div id="bookingsList"></div>
         <button class="btn btn-phones" onclick="showPhones()">📞 Показать номера телефонов</button>
+        <div id="bookingsList"></div>
     </div>
 
     <!-- Шаг 5: Список телефонов -->
@@ -406,7 +460,8 @@
             packages: [],
             selectedPackage: null,
             bookings: [],
-            phones: []
+            phones: [],
+            manualPackages: []
         };
 
         init();
@@ -414,6 +469,12 @@
         async function init() {
             updateStep('Шаг 1/4: Выбор таблицы');
             await loadTables();
+
+            document.getElementById('manualDateInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    manualSearchPackages();
+                }
+            });
         }
 
         function updateStep(text) {
@@ -440,6 +501,57 @@
 
         function hideLoading() {
             document.getElementById('loadingDiv').classList.add('hidden');
+        }
+
+        async function manualSearchPackages() {
+            const dateValue = document.getElementById('manualDateInput').value.trim();
+            if (!dateValue || dateValue.length < 4) {
+                showError('Введите дату в формате ДД.ММ');
+                return;
+            }
+
+            const list = document.getElementById('manualPackagesList');
+            list.innerHTML = '';
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/api/packages?date=${encodeURIComponent(dateValue)}`, {
+                    headers: {"ngrok-skip-browser-warning": "1"}
+                });
+                const data = await response.json();
+                hideLoading();
+
+                if (!data.ok || !data.found || !data.data || !data.data.length) {
+                    state.manualPackages = [];
+                    list.innerHTML = '<div class="no-data"><div class="no-data-icon">📦</div><p>Пакеты не найдены</p></div>';
+                    return;
+                }
+
+                state.manualPackages = data.data;
+                renderManualPackages();
+            } catch (error) {
+                console.error('Manual search error:', error);
+                hideLoading();
+                showError('Ошибка поиска пакетов');
+            }
+        }
+
+        function renderManualPackages() {
+            const list = document.getElementById('manualPackagesList');
+            if (!state.manualPackages.length) {
+                list.innerHTML = '';
+                return;
+            }
+
+            list.innerHTML = state.manualPackages.map(pkg => `
+                <div class="booking-card">
+                    <div class="booking-header" style="margin-bottom:8px;">
+                        <div class="booking-guest">${pkg.n}</div>
+                    </div>
+                    <div class="booking-detail">📅 Лист: <strong>${pkg.s}</strong></div>
+                    <div class="booking-detail">📄 Таблица: <strong>${pkg.t}</strong></div>
+                </div>
+            `).join('');
         }
 
         async function loadTables() {
@@ -634,9 +746,9 @@
                         </div>
                         <div class="booking-preview">
                             <div class="booking-detail">📞 Телефон: <strong>${booking.phone}</strong></div>
-                            <div class="booking-detail">🏠 Комната: <strong>${booking.room_type}</strong></div>
-                            <div class="booking-detail">🍽️ Питание: <strong>${booking.meal_type}</strong></div>
-                            <div class="booking-detail">💰 Цена: <strong>${booking.price}</strong></div>
+                            <div class="booking-detail">Комната: <strong>${booking.room_type}</strong></div>
+                            <div class="booking-detail">Питание: <strong>${booking.meal_type}</strong></div>
+                            <div class="booking-detail">Цена: <strong>${booking.price}</strong></div>
                         </div>
                         <button class="details-btn" onclick="toggleDetails(${index})">📋 Подробнее</button>
                         <div class="booking-details-full" id="details-${index}">
