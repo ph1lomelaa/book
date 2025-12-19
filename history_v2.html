@@ -544,7 +544,7 @@
     </div>
     
     <div class="packages-filter">
-        <div class="packages-filter-label">📦 Фильтр по пакетам:</div>
+        <div class="packages-filter-label">Фильтр по пакетам:</div>
         <div class="packages-list" id="packages-list"></div>
     </div>
     
@@ -622,6 +622,12 @@
             document.getElementById('manager-name').textContent = 'Демо режим';
             await loadBookings(0);
         }
+
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
     }
 
     async function loadBookings(managerId) {
@@ -738,7 +744,7 @@
                 ? pkg.active 
                 : pkg.cancelled;
         
-        text.textContent = `📦 ${packageName} (${count} паломников)`;
+        text.textContent = `${packageName} (${count} паломников)`;
         info.style.display = 'flex';
         
         applyFilters();
@@ -757,7 +763,7 @@
     }
 
     function applyFilters() {
-        const searchText = document.getElementById('search-input').value.toLowerCase();
+        const searchText = document.getElementById('search-input').value.trim().toLowerCase();
         
         filteredBookings = allBookings.filter(booking => {
             const status = mapStatus(booking.status);
@@ -844,9 +850,9 @@
 
                 <div class="booking-preview">
                     <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
-                    <div class="booking-detail">📦 Пакет: <strong>${packageName}</strong></div>
-                    <div class="booking-detail">📅 Дата: <strong>${sheetName}</strong></div>
-                    <div class="booking-detail">🏠 Комната: <strong>${roomType}</strong></div>
+                    <div class="booking-detail">Пакет: <strong>${packageName}</strong></div>
+                    <div class="booking-detail">Дата: <strong>${sheetName}</strong></div>
+                    <div class="booking-detail">Комната: <strong>${roomType}</strong></div>
                 </div>
 
                 <button class="details-btn" onclick="toggleDetails(${cardIndex})">
