@@ -283,6 +283,14 @@
             gap: 8px;
         }
 
+        .passport-image {
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            margin-bottom: 12px;
+            object-fit: cover;
+        }
+
         .booking-detail {
             display: flex;
             align-items: center;
@@ -582,7 +590,7 @@
                 const price = safeValue(booking.price);
                 const priceLabel = price === '-' ? '-' : `${price} тг`;
                 const amountPaid = safeValue(booking.amount_paid);
-                const comment = safeValue(booking.comment);
+                const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
                 const managerName = safeValue(booking.manager_name || booking.manager_name_text);
                 const gender = booking.gender === 'F' ? 'Женский' : 'Мужской';
                 const dateOfBirth = safeValue(booking.date_of_birth);
@@ -598,18 +606,34 @@
                 const source = safeValue(booking.source);
                 const sheetRow = booking.sheet_row_number != null ? booking.sheet_row_number : '-';
 
-                return `
+                const passportImage = booking.passport_image_path;
+
+                let html = `
                     <div class="booking-card">
                         <div class="booking-header">
                             <div class="booking-guest">👤 ${guestName}</div>
                             <span class="status-badge ${statusClass}">${statusText}</span>
                         </div>
+                `;
 
+                if (passportImage) {
+                    html += `
+                        <img
+                            src="${API_BASE}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1"
+                            alt="Паспорт"
+                            class="passport-image"
+                            onerror="this.style.display='none'"
+                        >
+                    `;
+                }
+
+                html += `
                         <div class="booking-details">
                             <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
-                            <div class="booking-detail">Пакет: <strong>${packageName}</strong></div>
-                            <div class="booking-detail">Дата: <strong>${sheetName}</strong></div>
-                            <div class="booking-detail">Комната: <strong>${roomType}</strong></div>
+                            <div class="booking-detail">📦 Пакет: <strong>${packageName}</strong></div>
+                            <div class="booking-detail">📅 Дата: <strong>${sheetName}</strong></div>
+                            <div class="booking-detail">🏠 Комната: <strong>${roomType}</strong></div>
+                            <div class="booking-detail">📄 Строка листа: <strong>${sheetRow}</strong></div>
                         </div>
 
                         <button class="details-btn" onclick="toggleDetails('details-${index}', this)">
@@ -618,7 +642,7 @@
 
                         <div class="booking-details-full" id="details-${index}">
                             <div class="details-section">
-                                <div class="details-section-title">ПАСПОРТНЫЕ ДАННЫЕ</div>
+                                <div class="details-section-title">Паспортные данные</div>
                                 <div class="booking-detail">Пол: <strong>${gender}</strong></div>
                                 <div class="booking-detail">Дата рождения: <strong>${dateOfBirth}</strong></div>
                                 <div class="booking-detail">Номер паспорта: <strong>${passportNum}</strong></div>
@@ -627,29 +651,36 @@
                             </div>
 
                             <div class="details-section">
-                                <div class="details-section-title">ДЕТАЛИ ТУРА</div>
+                                <div class="details-section-title">Детали тура</div>
                                 <div class="booking-detail">Питание: <strong>${mealType}</strong></div>
-                                <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
-                                <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
-                                <div class="booking-detail">Виза: <strong>${visaStatus}</strong></div>
                                 <div class="booking-detail">Регион: <strong>${region}</strong></div>
                                 <div class="booking-detail">Город вылета: <strong>${departureCity}</strong></div>
                                 <div class="booking-detail">Источник: <strong>${source}</strong></div>
-                                <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
-                                <div class="booking-detail">Строка листа: <strong>${sheetRow}</strong></div>
-                                <div class="booking-detail">Создано: <strong>${createdLabel}</strong></div>
+                                <div class="booking-detail">Виза: <strong>${visaStatus}</strong></div>
                                 ${avia !== '-' ? `<div class="booking-detail">Авиа: <strong>${avia}</strong></div>` : ''}
                                 ${train !== '-' ? `<div class="booking-detail">Поезд: <strong>${train}</strong></div>` : ''}
                             </div>
 
-                            ${comment !== '-' ? `
+                            <div class="details-section">
+                                <div class="details-section-title">Финансы</div>
+                                <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
+                                <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
+                            </div>
+
                             <div class="details-section">
                                 <div class="details-section-title">Комментарий</div>
-                                <div class="booking-detail">${comment}</div>
-                            </div>` : ''}
+                                <div class="booking-detail">${comment === '-' ? '—' : comment}</div>
+                            </div>
+
+                            <div class="details-section">
+                                <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
+                                <div class="booking-detail">Создано: <strong>${createdLabel}</strong></div>
+                            </div>
                         </div>
                     </div>
                 `;
+
+                return html;
             }).join('');
 
             container.innerHTML = `<div class="bookings-container">${cards}</div>`;
