@@ -530,10 +530,10 @@
                             <div class="booking-detail">
                                 Создано: <strong>${createdDate} в ${createdTime}</strong>
                             </div>
-                            ${booking.notes ? `
-                            <div class="booking-detail">
-                                Примечания: <strong>${booking.notes}</strong>
-                            </div>
+                            ${booking.comment ? `
+                                <div class="booking-detail">
+                                    Примечания: <strong>${booking.comment}</strong>
+                                </div>
                             ` : ''}
                         </div>
 
