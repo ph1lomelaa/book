@@ -436,14 +436,6 @@
         <div id="managers" class="content-section">
             <h2 style="margin-bottom: 20px; color: var(--accent-dark);">Менеджеры</h2>
 
-            <input type="text" class="search-box" placeholder="Поиск менеджера..." id="manager-search" onkeyup="filterManagers()">
-
-            <div class="date-selector">
-                <input type="date" id="manager-start-date" />
-                <input type="date" id="manager-end-date" />
-                <button class="btn" onclick="loadManagers()">Обновить</button>
-            </div>
-
             <div id="managers-list">
                 <!-- Список менеджеров -->
             </div>
@@ -662,19 +654,18 @@
                 const data = await response.json();
 
                 if (data.ok) {
-                    let html = '';
-                    data.managers.forEach(manager => {
-                        html += `
-                            <div class="manager-card" onclick="showManagerDetail(${manager.telegram_id}, '${manager.full_name}')">
-                                <h3>${manager.full_name}</h3>
-                                <div class="manager-stats">
-                                    <span>ID: ${manager.telegram_id}</span>
-                                    <span>Роль: ${manager.role}</span>
-                                </div>
+                    const cards = data.managers.map(manager => `
+                        <div class="manager-card" onclick="showManagerDetail(${manager.telegram_id}, '${manager.full_name}')">
+                            <h3>${manager.full_name}</h3>
+                            <div class="manager-stats">
+                                <span>ID: ${manager.telegram_id}</span>
+                                <span>Роль: ${manager.role}</span>
                             </div>
-                        `;
-                    });
-                    container.innerHTML = html;
+                        </div>
+                    `).join('');
+                    container.innerHTML = cards || '<p style="color: var(--text-secondary);">Менеджеры не найдены</p>';
+                } else {
+                    container.innerHTML = '<p>Ошибка загрузки</p>';
                 }
             } catch (error) {
                 container.innerHTML = '<p>Ошибка загрузки</p>';
@@ -689,8 +680,11 @@
             const historyBtn = document.getElementById('open-history-btn');
             if (historyBtn) historyBtn.disabled = false;
 
-            const startDate = document.getElementById('manager-start-date').value || new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
-            const endDate = document.getElementById('manager-end-date').value || new Date().toISOString().split('T')[0];
+            const endDateObj = new Date();
+            const startDateObj = new Date(endDateObj);
+            startDateObj.setMonth(endDateObj.getMonth() - 1);
+            const startDate = startDateObj.toISOString().split('T')[0];
+            const endDate = endDateObj.toISOString().split('T')[0];
 
             try {
                 const response = await apiFetch(`${API_BASE}/api/admin/manager/${managerId}?start_date=${startDate}&end_date=${endDate}`);
@@ -798,16 +792,6 @@
             } catch (error) {
                 tg.showAlert('Ошибка поиска');
             }
-        }
-
-        function filterManagers() {
-            const search = document.getElementById('manager-search').value.toLowerCase();
-            const cards = document.querySelectorAll('.manager-card');
-
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(search) ? 'block' : 'none';
-            });
         }
 
         function expandPackages() {
