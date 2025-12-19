@@ -822,7 +822,7 @@
         const priceLabel = price === '-' ? '-' : `${price} тг`;
         const amountPaid = safeValue(booking.amount_paid);
         const createdLabel = formatDateTime(booking.created_at);
-        const comment = safeValue(booking.comment);
+        const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
         const managerName = safeValue(booking.manager_name_text || booking.manager_name);
 
         // Additional details
@@ -882,12 +882,10 @@
                         ${source !== '-' ? `<div class="booking-detail">Источник: <strong>${source}</strong></div>` : ''}
                     </div>
 
-                    ${comment !== '-' ? `
                     <div class="details-section">
                         <div class="details-section-title">Комментарий</div>
-                        <div class="booking-detail">${comment}</div>
+                        <div class="booking-detail">${comment === '-' ? '—' : comment}</div>
                     </div>
-                    ` : ''}
 
                     <div class="details-section">
                         <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
