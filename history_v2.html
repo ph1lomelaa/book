@@ -300,18 +300,82 @@
             margin-bottom: 10px;
         }
         
-        .booking-info {
+        .booking-preview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 12px;
+        }
+
+        .booking-detail {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .booking-detail strong {
+            color: var(--text-primary);
+            margin-left: 4px;
+        }
+
+        .details-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+
+        .details-btn:hover {
+            border-color: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .details-btn.active {
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
+            color: white;
+            border-color: var(--accent-dark);
+        }
+
+        .booking-details-full {
+            display: none;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .booking-details-full.show {
+            display: block;
+        }
+
+        .details-section {
+            margin-bottom: 16px;
+        }
+
+        .details-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .details-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-brown);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .detail-grid {
             display: grid;
             gap: 10px;
         }
-        
+
         .detail-item {
             background: var(--bg-secondary);
             border-radius: 12px;
@@ -320,7 +384,7 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         .detail-label {
             font-size: 12px;
             text-transform: uppercase;
@@ -328,30 +392,8 @@
             color: var(--text-secondary);
             display: block;
         }
-        
+
         .detail-value {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-top: 4px;
-        }
-        
-        .info-group {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-        }
-        
-        .info-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            display: block;
-        }
-        
-        .info-value {
             font-size: 15px;
             font-weight: 600;
             color: var(--text-primary);
@@ -764,59 +806,91 @@
         const cardClass = cancelled ? 'booking-card cancelled' : 'booking-card';
         const statusClass = cancelled ? 'booking-status status-cancelled' : 'booking-status status-new';
         const statusText = cancelled ? 'Отменено' : 'Активна';
-        
+
         const guestName = safeValue(`${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.trim(), 'Без имени');
         const packageName = safeValue(booking.package_name);
         const sheetName = safeValue(booking.sheet_name);
         const roomType = safeValue(booking.room_type || booking.placement_type);
+        const phone = safeValue(booking.client_phone);
         const price = safeValue(booking.price);
         const priceLabel = price === '-' ? '-' : `${price} тг`;
+        const amountPaid = safeValue(booking.amount_paid);
         const createdLabel = formatDateTime(booking.created_at);
         const comment = safeValue(booking.comment);
         const managerName = safeValue(booking.manager_name_text || booking.manager_name);
 
+        // Additional details
+        const passportNum = safeValue(booking.passport_num);
+        const passportExpiry = safeValue(booking.passport_expiry);
+        const iin = safeValue(booking.guest_iin);
+        const dateOfBirth = safeValue(booking.date_of_birth);
+        const gender = booking.gender === 'F' ? 'Женский' : 'Мужской';
+        const mealType = safeValue(booking.meal_type);
+        const visaStatus = safeValue(booking.visa_status);
+        const avia = safeValue(booking.avia);
+        const train = safeValue(booking.train);
+        const departureCity = safeValue(booking.departure_city);
+        const region = safeValue(booking.region);
+        const source = safeValue(booking.source);
+
+        const cardIndex = filteredBookings.indexOf(booking);
+
         return `
-            <div class="${cardClass}" onclick="showDetails(${booking.id})">
+            <div class="${cardClass}">
                 <div class="booking-header">
                     <div class="booking-name">👤 ${guestName}</div>
                     <div class="${statusClass}">${statusText}</div>
                 </div>
-                <div class="booking-date">📅 ${sheetName}</div>
-                
-                <div class="booking-info">
-                    <div class="info-group">
-                        <span class="info-label">Пакет</span>
-                        <span class="info-value">${packageName}</span>
+
+                <div class="booking-preview">
+                    <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
+                    <div class="booking-detail">📦 Пакет: <strong>${packageName}</strong></div>
+                    <div class="booking-detail">📅 Дата: <strong>${sheetName}</strong></div>
+                    <div class="booking-detail">🏠 Комната: <strong>${roomType}</strong></div>
+                </div>
+
+                <button class="details-btn" onclick="toggleDetails(${cardIndex})">
+                    📋 Подробнее
+                </button>
+
+                <div class="booking-details-full" id="details-${cardIndex}">
+                    <div class="details-section">
+                        <div class="details-section-title">Паспортные данные</div>
+                        <div class="booking-detail">Пол: <strong>${gender}</strong></div>
+                        <div class="booking-detail">Дата рождения: <strong>${dateOfBirth}</strong></div>
+                        <div class="booking-detail">Номер паспорта: <strong>${passportNum}</strong></div>
+                        <div class="booking-detail">Срок действия: <strong>${passportExpiry}</strong></div>
+                        <div class="booking-detail">ИИН: <strong>${iin}</strong></div>
                     </div>
-                    <div class="info-group">
-                        <span class="info-label">Лист</span>
-                        <span class="info-value">${sheetName}</span>
+
+                    <div class="details-section">
+                        <div class="details-section-title">Детали тура</div>
+                        <div class="booking-detail">Питание: <strong>${mealType}</strong></div>
+                        <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
+                        <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
+                        ${visaStatus !== '-' ? `<div class="booking-detail">Виза: <strong>${visaStatus}</strong></div>` : ''}
+                        ${avia !== '-' ? `<div class="booking-detail">Авиа: <strong>${avia}</strong></div>` : ''}
+                        ${train !== '-' ? `<div class="booking-detail">Поезд: <strong>${train}</strong></div>` : ''}
+                        ${region !== '-' ? `<div class="booking-detail">Регион: <strong>${region}</strong></div>` : ''}
+                        ${departureCity !== '-' ? `<div class="booking-detail">Город вылета: <strong>${departureCity}</strong></div>` : ''}
+                        ${source !== '-' ? `<div class="booking-detail">Источник: <strong>${source}</strong></div>` : ''}
                     </div>
-                    <div class="info-group">
-                        <span class="info-label">Тип номера</span>
-                        <span class="info-value">${roomType}</span>
+
+                    ${comment !== '-' ? `
+                    <div class="details-section">
+                        <div class="details-section-title">Комментарий</div>
+                        <div class="booking-detail">${comment}</div>
                     </div>
-                    <div class="info-group">
-                        <span class="info-label">Цена</span>
-                        <span class="info-value">${priceLabel}</span>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Создано</span>
-                        <span class="info-value">${createdLabel}</span>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Примечания</span>
-                        <span class="info-value">${comment}</span>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Менеджер</span>
-                        <span class="info-value">${managerName}</span>
+                    ` : ''}
+
+                    <div class="details-section">
+                        <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
+                        <div class="booking-detail">Создано: <strong>${createdLabel}</strong></div>
                     </div>
                 </div>
-                
+
                 ${!cancelled ? `
-                <div class="booking-actions" onclick="event.stopPropagation()">
-                    <button class="action-btn primary" onclick="showDetails(${booking.id})">Подробнее</button>
+                <div class="booking-actions">
                     <button class="action-btn danger" onclick="confirmCancel(${booking.id})">Отменить</button>
                     <button class="action-btn" onclick="startReschedule(${booking.id})">Перенести</button>
                 </div>
@@ -825,10 +899,25 @@
         `;
     }
 
+    function toggleDetails(index) {
+        const detailsDiv = document.getElementById(`details-${index}`);
+        const btn = event.target;
+
+        if (detailsDiv.classList.contains('show')) {
+            detailsDiv.classList.remove('show');
+            btn.classList.remove('active');
+            btn.innerHTML = '📋 Подробнее';
+        } else {
+            detailsDiv.classList.add('show');
+            btn.classList.add('active');
+            btn.innerHTML = '🔼 Скрыть';
+        }
+    }
+
     function showDetails(bookingId) {
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
-        
+
         selectedBooking = booking;
         
         document.getElementById('modal-title').textContent =
