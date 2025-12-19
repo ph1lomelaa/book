@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бронирование Bull Project</title>
+    <title>🕌 Бронирование Умры</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
         :root {
-            /* Элегантная бежево-коричневая палитра */
             --bg-primary: #FAF8F5;
             --bg-secondary: #F5F1EB;
             --bg-card: #FFFFFF;
@@ -21,6 +20,8 @@
             --border-color: #E8E3DC;
             --shadow-soft: 0 4px 12px rgba(107, 93, 82, 0.08);
             --shadow-medium: 0 8px 24px rgba(107, 93, 82, 0.12);
+            --success-bg: #E8F5E9;
+            --success-text: #2E7D32;
         }
         
         * {
@@ -100,7 +101,6 @@
             flex: 1;
         }
         
-        /* Стилизованные радио-кнопки */
         .city-buttons, .radio-group {
             display: flex;
             gap: 10px;
@@ -142,7 +142,6 @@
             box-shadow: 0 6px 16px rgba(107, 93, 82, 0.25);
         }
         
-        /* Карточки паломников */
         .tourist-card {
             background: var(--bg-card);
             border: 2px solid var(--border-color);
@@ -193,7 +192,6 @@
             transform: translateY(0);
         }
         
-        /* Кнопки действий */
         .submit-btn {
             width: 100%;
             padding: 18px;
@@ -225,7 +223,6 @@
             transform: none;
         }
         
-        /* Smart box */
         .smart-box {
             background: linear-gradient(135deg, #FFFFFF 0%, var(--bg-secondary) 100%);
             padding: 20px;
@@ -242,13 +239,12 @@
             font-weight: 700;
         }
         
-        /* Данные паспорта */
         .passport-data {
-            background: linear-gradient(135deg, #F8F6F3 0%, #EEEBE6 100%);
+            background: linear-gradient(135deg, var(--success-bg) 0%, #F1F8E9 100%);
             padding: 14px;
             border-radius: 12px;
             margin-top: 12px;
-            border: 2px solid var(--border-color);
+            border: 2px solid #C8E6C9;
             display: none;
             animation: slideDown 0.3s ease;
         }
@@ -282,12 +278,11 @@
         }
         
         .passport-field strong {
-            color: var(--accent-brown);
+            color: var(--success-text);
             min-width: 150px;
             font-weight: 600;
         }
         
-        /* Details/Summary */
         details {
             margin-top: 20px;
             background: var(--bg-card);
@@ -329,7 +324,6 @@
             padding: 14px;
         }
         
-        /* Поиск даты */
         .date-search {
             display: flex;
             gap: 10px;
@@ -362,7 +356,6 @@
             box-shadow: 0 6px 16px rgba(107, 93, 82, 0.3);
         }
         
-        /* Кнопка "Назад" */
         .back-btn {
             width: 100%;
             background: none;
@@ -382,7 +375,6 @@
             background: var(--bg-secondary);
         }
         
-        /* Анимации загрузки */
         @keyframes pulse {
             0%, 100% {
                 opacity: 1;
@@ -396,10 +388,47 @@
             animation: pulse 1.5s ease-in-out infinite;
         }
         
-        /* Иконки в тексте */
         .icon {
             display: inline-block;
             margin-right: 6px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
+            color: white;
+            border-color: var(--accent-dark);
+            box-shadow: 0 4px 12px rgba(107, 93, 82, 0.3);
+        }
+
+        .step.completed {
+            background: var(--success-bg);
+            border-color: var(--success-text);
+            color: var(--success-text);
+        }
+
+        .phone-input {
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -411,14 +440,19 @@
 </div>
 
 <div id="step_1">
+    <div class="step-indicator">
+        <div class="step active">1</div>
+        <div class="step">2</div>
+    </div>
+
     <div class="smart-box">
-        <label><span class="icon"></span>1. Дата вылета:</label>
+        <label><span class="icon">📅</span>1. Дата вылета:</label>
         <div class="date-search">
             <input type="text" id="date_input" placeholder="13.12">
             <button type="button" onclick="handleSearch()" class="search-btn">Найти</button>
         </div>
         
-        <label style="margin-top: 16px;"><span class="icon"></span>2. Пакет:</label>
+        <label style="margin-top: 16px;"><span class="icon">📦</span>2. Пакет:</label>
         <select id="pkg_name" disabled>
             <option value="">Сначала введите дату</option>
         </select>
@@ -526,6 +560,11 @@
 </div>
 
 <div id="step_2" style="display: none;">
+    <div class="step-indicator">
+        <div class="step completed">✓</div>
+        <div class="step active">2</div>
+    </div>
+
     <div class="smart-box">
         <h3>🛏 Размещение</h3>
 
@@ -533,22 +572,22 @@
             <label>Тип размещения группы:</label>
             <div class="city-buttons">
                 <input type="radio" name="placement_type" id="m_fam" value="family" checked>
-                <label for="m_fam">👪 Семья</label>
+                <label for="m_fam">👪 Семья (вместе)</label>
                 <input type="radio" name="placement_type" id="m_sep" value="separate">
-                <label for="m_sep">🚻 Раздельно</label>
+                <label for="m_sep">🚻 Раздельно (по полу)</label>
             </div>
         </div>
 
         <label>Метод записи в таблицу:</label>
         <div class="radio-group" style="flex-direction: column;">
             <input type="radio" name="place_method" id="meth_auto" value="auto" checked onchange="updateUI()">
-            <label for="meth_auto"> Автоматически (Тетрис)</label>
+            <label for="meth_auto">🎲 Автоматически (Умное размещение)</label>
             
             <input type="radio" name="place_method" id="meth_pick" value="pick" onchange="updateUI()">
-            <label for="meth_pick"> Подселить (Список)</label>
+            <label for="meth_pick">🤝 Подселить (Выбрать комнату)</label>
             
             <input type="radio" name="place_method" id="meth_man" value="manual" onchange="updateUI()">
-            <label for="meth_man"> В конкретную строку</label>
+            <label for="meth_man">📝 Конкретная строка</label>
         </div>
 
         <div id="room_list_div" style="display: none; margin-top: 20px;">
@@ -558,7 +597,7 @@
 
         <div id="manual_div" style="display: none; margin-top: 20px;">
             <label>Номер строки (напр. 145):</label>
-            <input type="number" id="manual_row_input">
+            <input type="number" id="manual_row_input" placeholder="Введите номер строки">
         </div>
     </div>
 
@@ -577,7 +616,7 @@
     const API_URL = "https://gainless-computably-pablo.ngrok-free.dev";
     let pilgrimsData = [];
 
-    // --- ПОИСК ПАКЕТОВ ---
+    // === ПОИСК ПАКЕТОВ ===
     async function handleSearch() {
         let date = document.getElementById('date_input').value.trim().replace(/[\/\s,]/g, '.');
         document.getElementById('date_input').value = date;
@@ -613,7 +652,7 @@
         document.getElementById('table_id_hidden').value = opt.dataset.table;
     };
 
-    // --- ПАРСИНГ ТУРИСТОВ ИЗ URL ---
+    // === ПАРСИНГ ТУРИСТОВ ИЗ URL ===
     const urlParams = new URLSearchParams(window.location.search);
     const pRaw = urlParams.get('pilgrims');
 
@@ -659,7 +698,7 @@
                 <div id="passport_${idx}" class="passport-data">
                     <div class="passport-field"><strong>Фамилия:</strong> <span>${p.last_name}</span></div>
                     <div class="passport-field"><strong>Имя:</strong> <span>${p.first_name}</span></div>
-                    <div class="passport-field"><strong>Пол:</strong> <span>${p.gender}</span></div>
+                    <div class="passport-field"><strong>Пол:</strong> <span>${p.gender === 'M' ? '👨 Мужской' : '👩 Женский'}</span></div>
                     <div class="passport-field"><strong>Дата рождения:</strong> <span>${p.date_of_birth}</span></div>
                     <div class="passport-field"><strong>Паспорт:</strong> <span>${p.passport_num}</span></div>
                     <div class="passport-field"><strong>Срок действия:</strong> <span>${p.passport_expiry}</span></div>
@@ -692,14 +731,20 @@
 
         document.getElementById('step_1').style.display = 'none';
         document.getElementById('step_2').style.display = 'block';
+        window.scrollTo(0, 0);
 
-        if (pilgrimsData.length > 1) document.getElementById('group_logic').style.display = 'block';
+        // Показываем опции группового размещения, если паломников больше 1
+        if (pilgrimsData.length > 1) {
+            document.getElementById('group_logic').style.display = 'block';
+        }
+        
         fetchAvailableRooms();
     }
 
     function backToStep1() {
         document.getElementById('step_2').style.display = 'none';
         document.getElementById('step_1').style.display = 'block';
+        window.scrollTo(0, 0);
     }
 
     function updateUI() {
@@ -712,19 +757,30 @@
         const sel = document.getElementById('room_select');
         sel.innerHTML = '<option class="loading">⏳ Загрузка комнат...</option>';
 
+        // Определяем пол первого паломника (если группа одного пола) или 'M' по умолчанию
+        let primaryGender = 'M';
+        if (pilgrimsData.length > 0) {
+            primaryGender = pilgrimsData[0].gender || 'M';
+        }
+
         const params = new URLSearchParams({
             table_id: document.getElementById('table_id_hidden').value,
             sheet_name: document.getElementById('sheet_name_hidden').value,
             package_name: document.getElementById('pkg_name').value,
             count: pilgrimsData.length,
-            room_type: document.getElementById('room_type').value
+            room_type: document.getElementById('room_type').value,
+            gender: primaryGender
         });
 
         try {
             const r = await fetch(`${API_URL}/api/rooms?${params}`, { headers: {"ngrok-skip-browser-warning":"1"} });
             const res = await r.json();
             if (res.found && res.rooms.length > 0) {
-                sel.innerHTML = res.rooms.map(rm => `<option value="${rm.row}">${rm.gender==='M'?'🚹':'🚺'} ${rm.type} (Свободно: ${rm.free}) [Строка: ${rm.row}]</option>`).join('');
+                sel.innerHTML = res.rooms.map(rm => {
+                    const genderIcon = rm.gender === 'M' ? '🚹' : rm.gender === 'F' ? '🚺' : '👥';
+                    const lastGuest = rm.last_guest && rm.last_guest !== 'Свободно' ? ` · ${rm.last_guest}` : '';
+                    return `<option value="${rm.row}">${genderIcon} ${rm.type}${lastGuest} (Свободно: ${rm.free}) [Строка: ${rm.row}]</option>`;
+                }).join('');
             } else {
                 sel.innerHTML = '<option value="">Нет мест для подселения</option>';
             }
@@ -772,6 +828,7 @@
             comment: document.getElementById('comment').value,
             placement_type: document.querySelector('input[name="placement_type"]:checked')?.value || 'separate',
             specific_row: row ? parseInt(row) : null,
+            manager_id: tg.initDataUnsafe?.user?.id || 0
         };
 
         try {
