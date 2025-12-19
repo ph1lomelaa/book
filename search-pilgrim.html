@@ -380,6 +380,7 @@
                     return;
                 }
 
+                console.log('📊 Результаты поиска:', data.results);
                 displayResults(data.results);
 
             } catch (error) {
@@ -413,15 +414,25 @@
                 `;
 
                 // Фото паспорта
+                console.log(`Booking ID: ${booking.id}, passport_image_path: ${booking.passport_image_path}`);
+
                 if (booking.passport_image_path) {
+                    const photoUrl = `${API_URL}/api/care/passport-photo/${booking.id}`;
+                    console.log(`Загрузка паспорта с URL: ${photoUrl}`);
+
                     html += `
-                        <img
-                            src="${API_URL}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1"
-                            alt="Паспорт"
-                            class="passport-image"
-                            onerror="this.style.display='none'"
-                        >
+                        <div class="passport-container">
+                            <img
+                                src="${photoUrl}"
+                                alt="Паспорт"
+                                class="passport-image"
+                                onerror="console.error('❌ Ошибка загрузки паспорта для booking ${booking.id}'); this.style.display='none';"
+                                onload="console.log('✅ Паспорт успешно загружен для booking ${booking.id}');"
+                            >
+                        </div>
                     `;
+                } else {
+                    console.log(`⚠️ У паломника ${booking.last_name} ${booking.first_name} нет паспорта в БД`);
                 }
 
                 // Краткий превью
@@ -431,13 +442,13 @@
                             📞 Телефон: <strong>${booking.phone}</strong>
                         </div>
                         <div class="booking-detail">
-                            📦 Пакет: <strong>${booking.package_name}</strong>
+                            Пакет: <strong>${booking.package_name}</strong>
                         </div>
                         <div class="booking-detail">
-                            📅 Дата: <strong>${booking.sheet_name}</strong>
+                            Дата: <strong>${booking.sheet_name}</strong>
                         </div>
                         <div class="booking-detail">
-                            🏠 Комната: <strong>${booking.room_type}</strong>
+                            Комната: <strong>${booking.room_type}</strong>
                         </div>
                     </div>
 
