@@ -391,7 +391,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:8000';
+        const API_URL = 'https://gainless-computably-pablo.ngrok-free.dev';
         const tg = window.Telegram.WebApp;
 
         tg.ready();
@@ -445,7 +445,9 @@
         async function loadTables() {
             showLoading();
             try {
-                const response = await fetch(`${API_URL}/api/packages`);
+                const response = await fetch(`${API_URL}/api/packages`, {
+                    headers: {"ngrok-skip-browser-warning": "1"}
+                });
                 const data = await response.json();
                 hideLoading();
 
@@ -488,7 +490,9 @@
         async function loadSheets() {
             showLoading();
             try {
-                const response = await fetch(`${API_URL}/api/packages?table_id=${state.selectedTableId}`);
+                const response = await fetch(`${API_URL}/api/packages?table_id=${state.selectedTableId}`, {
+                    headers: {"ngrok-skip-browser-warning": "1"}
+                });
                 const data = await response.json();
                 hideLoading();
 
@@ -535,7 +539,8 @@
             showLoading();
             try {
                 const response = await fetch(
-                    `${API_URL}/api/care/packages-by-date?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}`
+                    `${API_URL}/api/care/packages-by-date?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}`,
+                    {headers: {"ngrok-skip-browser-warning": "1"}}
                 );
                 const data = await response.json();
                 hideLoading();
@@ -583,7 +588,8 @@
             showLoading();
             try {
                 const response = await fetch(
-                    `${API_URL}/api/care/bookings-in-package?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}&package_name=${encodeURIComponent(state.selectedPackage)}`
+                    `${API_URL}/api/care/bookings-in-package?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}&package_name=${encodeURIComponent(state.selectedPackage)}`,
+                    {headers: {"ngrok-skip-browser-warning": "1"}}
                 );
                 const data = await response.json();
                 hideLoading();
@@ -699,7 +705,8 @@
 
             try {
                 const response = await fetch(
-                    `${API_URL}/api/care/phones-by-package?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}&package_name=${encodeURIComponent(state.selectedPackage)}`
+                    `${API_URL}/api/care/phones-by-package?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}&package_name=${encodeURIComponent(state.selectedPackage)}`,
+                    {headers: {"ngrok-skip-browser-warning": "1"}}
                 );
                 const data = await response.json();
                 hideLoading();
