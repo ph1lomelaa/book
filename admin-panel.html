@@ -214,6 +214,13 @@
             margin-top: 20px;
         }
 
+        .manager-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -442,7 +449,10 @@
             </div>
 
             <div id="manager-detail" style="display: none;">
-                <button class="btn btn-secondary" onclick="closeManagerDetail()">← Назад к списку</button>
+                <div class="manager-actions">
+                    <button class="btn btn-secondary" onclick="closeManagerDetail()">← Назад к списку</button>
+                    <button class="btn" id="open-history-btn" onclick="openManagerHistory()" disabled>📋 История менеджера</button>
+                </div>
                 <div id="manager-detail-content"></div>
             </div>
         </div>
@@ -470,10 +480,12 @@
 
         // API базовый URL (поменяйте на ваш)
         const API_BASE = 'https://gainless-computably-pablo.ngrok-free.dev';
+        const HISTORY_WEBAPP_URL = 'https://ph1lomelaa.github.io/book/history_v2.html';
 
         let salesChart = null;
         let allBookingsData = [];
         let currentStatusFilter = 'all';
+        let currentManagerId = null;
 
         // Обёртка для fetch с заголовками ngrok
         async function apiFetch(url, options = {}) {
@@ -673,6 +685,9 @@
         async function showManagerDetail(managerId, managerName) {
             document.getElementById('managers-list').style.display = 'none';
             document.getElementById('manager-detail').style.display = 'block';
+            currentManagerId = managerId;
+            const historyBtn = document.getElementById('open-history-btn');
+            if (historyBtn) historyBtn.disabled = false;
 
             const startDate = document.getElementById('manager-start-date').value || new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
             const endDate = document.getElementById('manager-end-date').value || new Date().toISOString().split('T')[0];
@@ -727,9 +742,26 @@
             }
         }
 
+        function openManagerHistory(managerIdOverride) {
+            const managerId = managerIdOverride || currentManagerId;
+            if (!managerId) {
+                tg.showAlert('Сначала выберите менеджера');
+                return;
+            }
+            const url = `${HISTORY_WEBAPP_URL}?managerId=${managerId}`;
+            if (tg && typeof tg.openLink === 'function') {
+                tg.openLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+
         function closeManagerDetail() {
             document.getElementById('managers-list').style.display = 'block';
             document.getElementById('manager-detail').style.display = 'none';
+            currentManagerId = null;
+            const historyBtn = document.getElementById('open-history-btn');
+            if (historyBtn) historyBtn.disabled = true;
         }
 
         // Поиск пакетов
