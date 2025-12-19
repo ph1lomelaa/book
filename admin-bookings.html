@@ -456,9 +456,16 @@
             if (Number.isNaN(date.getTime())) return value;
             const dateStr = date.toLocaleDateString('ru-RU');
             const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-            return `${dateStr} в ${timeStr}`;
+            return `${dateStr} ${timeStr}`;
         };
-        const safeText = (value, fallback = '-') => (value && value !== '-' ? value : fallback);
+        const safeText = (value, fallback = '-') => {
+            if (value === null || value === undefined) return fallback;
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                return trimmed === '' || trimmed === '-' ? fallback : trimmed;
+            }
+            return value !== '' ? value : fallback;
+        };
         const safeValue = safeText;
 
         // Обёртка для fetch с заголовками ngrok
@@ -558,15 +565,16 @@
                     : status === 'rescheduled'
                         ? 'status-rescheduled'
                         : 'status-active';
-                const statusText = status === 'cancelled'
-                    ? 'Отменена'
-                    : status === 'rescheduled'
-                        ? 'Перенос'
-                        : 'Активная';
+                const statusTextMap = {
+                    cancelled: 'ОТМЕНЕНО',
+                    rescheduled: 'ПЕРЕНОС',
+                    new: 'АКТИВНА'
+                };
+                const statusText = statusTextMap[status] || (status ? status.toUpperCase() : 'АКТИВНА');
 
                 const createdLabel = formatDateTime(booking.created_at);
                 const guestNameRaw = `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.trim();
-                const guestName = safeValue(guestNameRaw, 'Без имени');
+                const guestName = guestNameRaw ? guestNameRaw : 'Без имени';
                 const packageName = safeValue(booking.package_name);
                 const sheetName = safeValue(booking.sheet_name);
                 const roomType = safeValue(booking.room_type || booking.placement_type);
@@ -588,11 +596,12 @@
                 const departureCity = safeValue(booking.departure_city);
                 const region = safeValue(booking.region);
                 const source = safeValue(booking.source);
+                const sheetRow = booking.sheet_row_number != null ? booking.sheet_row_number : '-';
 
                 return `
                     <div class="booking-card">
                         <div class="booking-header">
-                            <div class="booking-guest">${guestName}</div>
+                            <div class="booking-guest">👤 ${guestName}</div>
                             <span class="status-badge ${statusClass}">${statusText}</span>
                         </div>
 
@@ -609,34 +618,35 @@
 
                         <div class="booking-details-full" id="details-${index}">
                             <div class="details-section">
+                                <div class="details-section-title">ПАСПОРТНЫЕ ДАННЫЕ</div>
                                 <div class="booking-detail">Пол: <strong>${gender}</strong></div>
                                 <div class="booking-detail">Дата рождения: <strong>${dateOfBirth}</strong></div>
-                                <div class="booking-detail">Паспорт: <strong>${passportNum}</strong></div>
+                                <div class="booking-detail">Номер паспорта: <strong>${passportNum}</strong></div>
                                 <div class="booking-detail">Срок действия: <strong>${passportExpiry}</strong></div>
                                 <div class="booking-detail">ИИН: <strong>${iin}</strong></div>
                             </div>
 
                             <div class="details-section">
+                                <div class="details-section-title">ДЕТАЛИ ТУРА</div>
                                 <div class="booking-detail">Питание: <strong>${mealType}</strong></div>
                                 <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
                                 <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
-                                ${visaStatus !== '-' ? `<div class=\"booking-detail\">Виза: <strong>${visaStatus}</strong></div>` : ''}
-                                ${avia !== '-' ? `<div class=\"booking-detail\">Авиа: <strong>${avia}</strong></div>` : ''}
-                                ${train !== '-' ? `<div class=\"booking-detail\">Поезд: <strong>${train}</strong></div>` : ''}
-                                ${region !== '-' ? `<div class=\"booking-detail\">Регион: <strong>${region}</strong></div>` : ''}
-                                ${departureCity !== '-' ? `<div class=\"booking-detail\">Город вылета: <strong>${departureCity}</strong></div>` : ''}
-                                ${source !== '-' ? `<div class=\"booking-detail\">Источник: <strong>${source}</strong></div>` : ''}
+                                <div class="booking-detail">Виза: <strong>${visaStatus}</strong></div>
+                                <div class="booking-detail">Регион: <strong>${region}</strong></div>
+                                <div class="booking-detail">Город вылета: <strong>${departureCity}</strong></div>
+                                <div class="booking-detail">Источник: <strong>${source}</strong></div>
+                                <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
+                                <div class="booking-detail">Строка листа: <strong>${sheetRow}</strong></div>
                                 <div class="booking-detail">Создано: <strong>${createdLabel}</strong></div>
+                                ${avia !== '-' ? `<div class="booking-detail">Авиа: <strong>${avia}</strong></div>` : ''}
+                                ${train !== '-' ? `<div class="booking-detail">Поезд: <strong>${train}</strong></div>` : ''}
                             </div>
 
                             ${comment !== '-' ? `
                             <div class="details-section">
-                                <div class="booking-detail">Комментарий: <strong>${comment}</strong></div>
+                                <div class="details-section-title">Комментарий</div>
+                                <div class="booking-detail">${comment}</div>
                             </div>` : ''}
-                        </div>
-
-                        <div class="manager-tag">
-                            Менеджер: ${managerName}
                         </div>
                     </div>
                 `;
