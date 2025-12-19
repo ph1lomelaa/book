@@ -697,7 +697,8 @@
                 date_of_birth: p.date_of_birth || "-",
                 gender: p.gender || "M",
                 passport_expiry: p.passport_expiry || "-",
-                iin: p.iin || "-"
+                iin: p.iin || "-",
+                passport_image_path: p.passport_image_path || null
             }));
 
             console.log("📋 Финальный pilgrimsData:", pilgrimsData);
@@ -820,7 +821,8 @@
             date_of_birth: p.date_of_birth,
             gender: p.gender,
             passport_expiry: p.passport_expiry,
-            iin: p.iin
+            iin: p.iin,
+            passport_image_path: p.passport_image_path || null
         }));
 
         console.log("📤 Отправка данных на сервер:", pilgrims);
@@ -877,7 +879,16 @@
                 return;
             }
 
+            // Показываем сообщение об успехе
             alert("✅ Бронь успешно размещена!");
+
+            // Отправляем событие в Telegram для возврата в главное меню
+            tg.sendData(JSON.stringify({
+                action: "booking_completed",
+                saved_rows: json.saved_rows || []
+            }));
+
+            // Закрываем WebApp
             tg.close();
         } catch (e) {
             alert("❌ Ошибка сети: " + e);
