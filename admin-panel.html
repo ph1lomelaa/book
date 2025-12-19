@@ -180,6 +180,19 @@
             border-color: var(--accent-brown);
         }
 
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 10px 0 20px;
+        }
+
+        .quick-actions .btn {
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+        }
+
         .btn {
             padding: 12px 30px;
             background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
@@ -394,6 +407,10 @@
             </div>
         </div>
 
+        <div class="quick-actions">
+            <button class="btn" onclick="openPilgrimSearch()">🔎 Найти паломника</button>
+        </div>
+
         <!-- ОБЩАЯ СТАТИСТИКА -->
         <div id="overview" class="content-section active">
             <h2 style="margin-bottom: 20px; color: var(--accent-dark);">Статистика продаж</h2>
@@ -473,6 +490,7 @@
         // API базовый URL (поменяйте на ваш)
         const API_BASE = 'https://gainless-computably-pablo.ngrok-free.dev';
         const HISTORY_WEBAPP_URL = 'https://ph1lomelaa.github.io/book/history_v2.html';
+        const SEARCH_WEBAPP_URL = 'https://ph1lomelaa.github.io/book/search-pilgrim.html';
 
         let salesChart = null;
         let allBookingsData = [];
@@ -743,6 +761,15 @@
                 return;
             }
             const url = `${HISTORY_WEBAPP_URL}?managerId=${managerId}`;
+            if (tg && typeof tg.openLink === 'function') {
+                tg.openLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+
+        function openPilgrimSearch() {
+            const url = SEARCH_WEBAPP_URL;
             if (tg && typeof tg.openLink === 'function') {
                 tg.openLink(url);
             } else {
