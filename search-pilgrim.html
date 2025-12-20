@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔍 Поиск паломника - Hickmet Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/assets/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -337,7 +338,7 @@
     <div id="resultsContainer" class="results-container hidden"></div>
 
     <script>
-        const API_URL = 'https://gainless-computably-pablo.ngrok-free.dev';
+        const API_URL = window.BULL_API_URL;
         const tg = window.Telegram.WebApp;
 
         tg.ready();
@@ -442,13 +443,13 @@
                             📞 Телефон: <strong>${booking.phone}</strong>
                         </div>
                         <div class="booking-detail">
-                            Пакет: <strong>${booking.package_name}</strong>
+                            📦 Пакет: <strong>${booking.package_name}</strong>
                         </div>
                         <div class="booking-detail">
-                            Дата: <strong>${booking.sheet_name}</strong>
+                            📅 Дата: <strong>${booking.sheet_name}</strong>
                         </div>
                         <div class="booking-detail">
-                            Комната: <strong>${booking.room_type}</strong>
+                            🏠 Комната: <strong>${booking.room_type}</strong>
                         </div>
                     </div>
 
