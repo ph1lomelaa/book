@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📋 История бронирований</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/assets/config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
@@ -579,7 +580,7 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const API_URL = "https://gainless-computably-pablo.ngrok-free.dev";
+    const API_URL = window.BULL_API_URL;
     const urlManagerId = new URLSearchParams(window.location.search).get('managerId');
 
     let allBookings = [];
