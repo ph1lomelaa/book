@@ -901,13 +901,13 @@
                             <h4>${booking.guest_last_name} ${booking.guest_first_name}</h4>
                             ${statusBadge}
                         </div>
-                        <p>📦 <strong>Пакет:</strong> ${booking.package_name}</p>
-                        <p>✈️ <strong>Лист:</strong> ${booking.sheet_name}</p>
-                        <p>🛏️ <strong>Тип номера:</strong> ${booking.room_type || 'Не указан'}</p>
-                        <p>💰 <strong>Цена:</strong> ${booking.price} тг</p>
-                        <p>👤 <strong>Менеджер:</strong> ${booking.manager_name}</p>
-                        <p>📅 <strong>Создано:</strong> ${createdDate} в ${createdTime}</p>
-                        ${booking.notes ? `<p>📝 <strong>Примечания:</strong> ${booking.notes}</p>` : ''}
+                        <p><strong>Пакет:</strong> ${booking.package_name}</p>
+                        <p><strong>Лист:</strong> ${booking.sheet_name}</p>
+                        <p><strong>Тип номера:</strong> ${booking.room_type || 'Не указан'}</p>
+                        <p><strong>Цена:</strong> ${booking.price} тг</p>
+                        <p>👤<strong>Менеджер:</strong> ${booking.manager_name}</p>
+                        <p>📅<strong>Создано:</strong> ${createdDate} в ${createdTime}</p>
+                        ${booking.notes ? `<p>📝 <strong>Комментарий:</strong> ${booking.notes}</p>` : ''}
                     </div>
                 `;
             });
@@ -938,7 +938,7 @@
             if (status === 'all') {
                 filteredBookings = allBookingsData;
             } else if (status === 'active') {
-                filteredBookings = allBookingsData.filter(b => b.status === 'new'); 
+                filteredBookings = allBookingsData.filter(b => b.status === 'new');
             } else {
                 filteredBookings = allBookingsData.filter(b => b.status === status);
             }
