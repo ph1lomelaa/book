@@ -212,6 +212,14 @@
             margin-bottom: 12px;
         }
 
+        .passport-image {
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            margin-bottom: 12px;
+            object-fit: cover;
+        }
+
         .booking-detail {
             display: flex;
             align-items: center;
@@ -660,6 +668,7 @@
                 const managerName = safeValue(booking.manager_name);
                 const createdLabel = formatDateTime(booking.created_at);
                 const sheetRow = booking.sheet_row_number != null ? booking.sheet_row_number : '-';
+                const passportImage = booking.passport_image_path;
 
                 const card = document.createElement('div');
                 card.className = 'booking-card';
@@ -669,6 +678,14 @@
                         <div class="booking-guest">${guestName}</div>
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
+                    ${passportImage ? `
+                        <img
+                            src="${API_URL}/api/care/passport-photo/${booking.id}"
+                            alt="Паспорт"
+                            class="passport-image"
+                            onerror="this.style.display='none'"
+                        >
+                    ` : ''}
                     <div class="booking-preview">
                         <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
                         <div class="booking-detail">📦 Пакет: <strong>${packageName}</strong></div>
