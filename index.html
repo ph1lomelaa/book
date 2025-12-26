@@ -682,90 +682,9 @@
     const urlParams = new URLSearchParams(window.location.search);
     const pRaw = urlParams.get('pilgrims');
 
-    // 🔥 ИСПРАВЛЕНИЕ: Получаем параметры переноса
-    const isReschedule = urlParams.get('is_reschedule') === 'true';
-    const oldBookingId = urlParams.get('old_booking_id') ? parseInt(urlParams.get('old_booking_id')) : null;
-
     console.log("📥 URL параметр pilgrims:", pRaw);
-    console.log("📥 URL параметр is_reschedule:", isReschedule);
-    console.log("📥 URL параметр old_booking_id:", oldBookingId);
 
-    // 🔥 НОВАЯ ЛОГИКА: Если это перенос - загружаем данные из API
-    if (isReschedule && oldBookingId) {
-        console.log("♻️ ПЕРЕНОС: Загружаем данные брони #" + oldBookingId + " из API");
-
-        // Получаем параметры нового пакета из URL
-        const newTableId = urlParams.get('table_id');
-        const newSheetName = urlParams.get('sheet_name');
-        const newPackageName = urlParams.get('package_name');
-
-        console.log("📦 Новый пакет для переноса:");
-        console.log("  table_id:", newTableId);
-        console.log("  sheet_name:", newSheetName);
-        console.log("  package_name:", newPackageName);
-
-        try {
-            const response = await fetch(`${API_URL}/api/bookings/${oldBookingId}`);
-            if (!response.ok) {
-                throw new Error("Не удалось загрузить данные брони");
-            }
-
-            const data = await response.json();
-            console.log("✅ Ответ API:", data);
-
-            if (!data.ok || !data.booking) {
-                throw new Error("Некорректный ответ от API");
-            }
-
-            const booking = data.booking;
-            console.log("✅ Данные брони получены:", booking);
-
-            // Формируем данные паломника из брони
-            pilgrimsData = [{
-                name: `${booking.guest_last_name} ${booking.guest_first_name}`,
-                last_name: booking.guest_last_name || "-",
-                first_name: booking.guest_first_name || "-",
-                phone: booking.client_phone || "-",
-                passport_num: booking.passport_num || "-",
-                date_of_birth: booking.date_of_birth || "-",
-                gender: booking.gender || "M",
-                passport_expiry: booking.passport_expiry || "-",
-                iin: booking.guest_iin || "-",
-                passport_image_path: booking.passport_image_path || null
-            }];
-
-            console.log("📋 Данные паломника для переноса:", pilgrimsData);
-            renderPilgrims();
-
-            // 🔥 АВТОЗАПОЛНЕНИЕ: Заполняем поля формы данными о новом пакете
-            if (newPackageName && newSheetName && newTableId) {
-                console.log("✅ Автозаполнение формы данными переноса...");
-
-                // Заполняем скрытые поля
-                document.getElementById('sheet_name_hidden').value = newSheetName;
-                document.getElementById('table_id_hidden').value = newTableId;
-
-                // Создаем опцию в селекте пакета
-                const pkgSelect = document.getElementById('pkg_name');
-                pkgSelect.disabled = false;
-                pkgSelect.innerHTML = `<option value="${newPackageName}" data-sheet="${newSheetName}" data-table="${newTableId}">${newPackageName}</option>`;
-
-                // Заполняем дату (извлекаем из sheet_name)
-                const dateMatch = newSheetName.match(/(\d{2}\.\d{2})/);
-                if (dateMatch) {
-                    document.getElementById('date_input').value = dateMatch[1];
-                }
-
-                console.log("✅ Форма предзаполнена для переноса");
-            }
-
-        } catch(e) {
-            console.error("❌ Ошибка загрузки данных переноса:", e);
-            alert("Ошибка загрузки данных брони для переноса: " + e.message);
-        }
-
-    } else if (pRaw) {
-        // Обычная бронь - данные в URL
+    if (pRaw) {
         try {
             const pilgrims = JSON.parse(decodeURIComponent(pRaw));
             console.log("✅ Декодированные данные:", pilgrims);
@@ -934,10 +853,7 @@
             comment: document.getElementById('comment').value,
             placement_type: document.querySelector('input[name="placement_type"]:checked')?.value || 'separate',
             specific_row: row ? parseInt(row) : null,
-            manager_id: tg.initDataUnsafe?.user?.id || 0,
-            // 🔥 ИСПРАВЛЕНИЕ: Добавляем параметры переноса
-            is_reschedule: isReschedule,
-            old_booking_id: oldBookingId
+            manager_id: tg.initDataUnsafe?.user?.id || 0
         };
 
         try {
