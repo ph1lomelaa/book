@@ -690,7 +690,50 @@
     console.log("📥 URL параметр is_reschedule:", isReschedule);
     console.log("📥 URL параметр old_booking_id:", oldBookingId);
 
-    if (pRaw) {
+    // 🔥 НОВАЯ ЛОГИКА: Если это перенос - загружаем данные из API
+    if (isReschedule && oldBookingId) {
+        console.log("♻️ ПЕРЕНОС: Загружаем данные брони #" + oldBookingId + " из API");
+
+        try {
+            const response = await fetch(`${API_URL}/api/bookings/${oldBookingId}`);
+            if (!response.ok) {
+                throw new Error("Не удалось загрузить данные брони");
+            }
+
+            const data = await response.json();
+            console.log("✅ Ответ API:", data);
+
+            if (!data.ok || !data.booking) {
+                throw new Error("Некорректный ответ от API");
+            }
+
+            const booking = data.booking;  // 🔥 Данные внутри объекта booking
+            console.log("✅ Данные брони получены:", booking);
+
+            // Формируем данные паломника из брони
+            pilgrimsData = [{
+                name: `${booking.guest_last_name} ${booking.guest_first_name}`,
+                last_name: booking.guest_last_name || "-",
+                first_name: booking.guest_first_name || "-",
+                phone: booking.client_phone || "-",
+                passport_num: booking.passport_num || "-",
+                date_of_birth: booking.date_of_birth || "-",
+                gender: booking.gender || "M",
+                passport_expiry: booking.passport_expiry || "-",
+                iin: booking.guest_iin || "-",
+                passport_image_path: booking.passport_image_path || null
+            }];
+
+            console.log("📋 Данные паломника для переноса:", pilgrimsData);
+            renderPilgrims();
+
+        } catch(e) {
+            console.error("❌ Ошибка загрузки данных переноса:", e);
+            alert("Ошибка загрузки данных брони для переноса: " + e.message);
+        }
+
+    } else if (pRaw) {
+        // Обычная бронь - данные в URL
         try {
             const pilgrims = JSON.parse(decodeURIComponent(pRaw));
             console.log("✅ Декодированные данные:", pilgrims);
