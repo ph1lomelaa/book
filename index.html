@@ -694,6 +694,16 @@
     if (isReschedule && oldBookingId) {
         console.log("♻️ ПЕРЕНОС: Загружаем данные брони #" + oldBookingId + " из API");
 
+        // Получаем параметры нового пакета из URL
+        const newTableId = urlParams.get('table_id');
+        const newSheetName = urlParams.get('sheet_name');
+        const newPackageName = urlParams.get('package_name');
+
+        console.log("📦 Новый пакет для переноса:");
+        console.log("  table_id:", newTableId);
+        console.log("  sheet_name:", newSheetName);
+        console.log("  package_name:", newPackageName);
+
         try {
             const response = await fetch(`${API_URL}/api/bookings/${oldBookingId}`);
             if (!response.ok) {
@@ -707,7 +717,7 @@
                 throw new Error("Некорректный ответ от API");
             }
 
-            const booking = data.booking;  // 🔥 Данные внутри объекта booking
+            const booking = data.booking;
             console.log("✅ Данные брони получены:", booking);
 
             // Формируем данные паломника из брони
@@ -726,6 +736,28 @@
 
             console.log("📋 Данные паломника для переноса:", pilgrimsData);
             renderPilgrims();
+
+            // 🔥 АВТОЗАПОЛНЕНИЕ: Заполняем поля формы данными о новом пакете
+            if (newPackageName && newSheetName && newTableId) {
+                console.log("✅ Автозаполнение формы данными переноса...");
+
+                // Заполняем скрытые поля
+                document.getElementById('sheet_name_hidden').value = newSheetName;
+                document.getElementById('table_id_hidden').value = newTableId;
+
+                // Создаем опцию в селекте пакета
+                const pkgSelect = document.getElementById('pkg_name');
+                pkgSelect.disabled = false;
+                pkgSelect.innerHTML = `<option value="${newPackageName}" data-sheet="${newSheetName}" data-table="${newTableId}">${newPackageName}</option>`;
+
+                // Заполняем дату (извлекаем из sheet_name)
+                const dateMatch = newSheetName.match(/(\d{2}\.\d{2})/);
+                if (dateMatch) {
+                    document.getElementById('date_input').value = dateMatch[1];
+                }
+
+                console.log("✅ Форма предзаполнена для переноса");
+            }
 
         } catch(e) {
             console.error("❌ Ошибка загрузки данных переноса:", e);
