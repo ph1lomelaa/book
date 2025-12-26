@@ -461,7 +461,7 @@
             <button type="button" onclick="handleSearch()" class="search-btn">Найти</button>
         </div>
 
-        <label style="margin-top: 16px;"><span class="icon">📦</span>2. Пакет:</label>
+        <label style="margin-top: 16px;"><span class="icon"></span>2. Пакет:</label>
         <select id="pkg_name" disabled>
             <option value="">Сначала введите дату</option>
         </select>
@@ -682,7 +682,13 @@
     const urlParams = new URLSearchParams(window.location.search);
     const pRaw = urlParams.get('pilgrims');
 
+    // 🔥 ИСПРАВЛЕНИЕ: Получаем параметры переноса
+    const isReschedule = urlParams.get('is_reschedule') === 'true';
+    const oldBookingId = urlParams.get('old_booking_id') ? parseInt(urlParams.get('old_booking_id')) : null;
+
     console.log("📥 URL параметр pilgrims:", pRaw);
+    console.log("📥 URL параметр is_reschedule:", isReschedule);
+    console.log("📥 URL параметр old_booking_id:", oldBookingId);
 
     if (pRaw) {
         try {
@@ -853,7 +859,10 @@
             comment: document.getElementById('comment').value,
             placement_type: document.querySelector('input[name="placement_type"]:checked')?.value || 'separate',
             specific_row: row ? parseInt(row) : null,
-            manager_id: tg.initDataUnsafe?.user?.id || 0
+            manager_id: tg.initDataUnsafe?.user?.id || 0,
+            // 🔥 ИСПРАВЛЕНИЕ: Добавляем параметры переноса
+            is_reschedule: isReschedule,
+            old_booking_id: oldBookingId
         };
 
         try {
