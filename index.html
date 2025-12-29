@@ -831,6 +831,7 @@
 
     function renderPilgrims() {
         const container = document.getElementById('pilgrims-container');
+        const showUpload = currentMode !== 'edit'; // в режиме редактирования убираем загрузку/путь файла
         container.innerHTML = pilgrimsData.map((p, idx) => `
             <div class="tourist-card">
                 <div class="tourist-header">
@@ -840,16 +841,17 @@
                     </button>
                 </div>
                 <input type="tel" class="phone-input" data-idx="${idx}" placeholder="Номер телефона" value="${p.phone !== '-' ? p.phone : ''}">
-                <div class="upload-wrapper">
-                    <label>Фото паспорта (jpg/png/pdf):</label>
-                    <input type="file" accept=".jpg,.jpeg,.png,.pdf" data-idx="${idx}" class="passport-file">
-                    ${p.passport_image_path ? `<div class="file-info">Текущий файл: ${p.passport_image_path}</div>` : ''}
-                </div>
+                ${showUpload ? `
+                    <div class="upload-wrapper">
+                        <label>Фото паспорта (jpg/png/pdf):</label>
+                        <input type="file" accept=".jpg,.jpeg,.png,.pdf" data-idx="${idx}" class="passport-file">
+                    </div>
+                ` : ''}
 
                 <div id="passport_${idx}" class="passport-data">
                     <div class="passport-field"><strong>Фамилия:</strong> <span>${p.last_name}</span></div>
                     <div class="passport-field"><strong>Имя:</strong> <span>${p.first_name}</span></div>
-                    <div class="passport-field"><strong>Пол:</strong> <span>${p.gender === 'M' ? 'Мужской' : 'Женский'}</span></div>
+                    <div class="passport-field"><strong>Пол:</strong> <span>${p.gender === 'M' ? '👨 Мужской' : '👩 Женский'}</span></div>
                     <div class="passport-field"><strong>Дата рождения:</strong> <span>${p.date_of_birth}</span></div>
                     <div class="passport-field"><strong>Паспорт:</strong> <span>${p.passport_num}</span></div>
                     <div class="passport-field"><strong>Срок действия:</strong> <span>${p.passport_expiry}</span></div>
@@ -1177,7 +1179,7 @@
                 endpoint = `${API_URL}/api/bookings/${currentBookingId}`;
                 method = "PATCH";
                 btnText = '<span class="icon">⏳</span> Сохраняю изменения...';
-                console.log("РЕДАКТИРОВАНИЕ брони #" + currentBookingId);
+                console.log("✏️ РЕДАКТИРОВАНИЕ брони #" + currentBookingId);
             } else {
                 // Режим создания или переноса - создаем новую бронь
                 endpoint = `${API_URL}/api/bookings/submit`;
@@ -1185,7 +1187,7 @@
                 btnText = '<span class="icon">⏳</span> Записываю...';
 
                 if (currentMode === 'reschedule' && currentOldBookingId) {
-                    console.log("ПЕРЕНОС брони (старая #" + currentOldBookingId + ")");
+                    console.log("♻️ ПЕРЕНОС брони (старая #" + currentOldBookingId + ")");
                 } else {
                     console.log("➕ СОЗДАНИЕ новой брони");
                 }
