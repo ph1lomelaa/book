@@ -618,7 +618,7 @@
 
 <div class="modal" id="edit-modal">
     <div class="modal-content">
-        <h2 style="font-size: 20px; font-weight: 700; color: var(--accent-dark); margin-bottom: 20px;">✏️ Редактировать данные</h2>
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--accent-dark); margin-bottom: 20px;">Редактировать данные</h2>
 
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--accent-brown);">📞 ТЕЛЕФОН</label>
@@ -626,18 +626,18 @@
         </div>
 
         <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--accent-brown);">💰 СУММА ОПЛАТЫ</label>
+            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--accent-brown);">СУММА ОПЛАТЫ</label>
             <input type="text" id="edit-amount-paid" class="search-input" style="width: 100%; margin-bottom: 0;" placeholder="150000">
         </div>
 
         <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--accent-brown);">💬 КОММЕНТАРИЙ</label>
+            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--accent-brown);">КОММЕНТАРИЙ</label>
             <textarea id="edit-comment" style="width: 100%; padding: 14px 16px; border: 2px solid var(--border-color); border-radius: 14px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 16px; font-family: inherit; outline: none; min-height: 100px; resize: vertical;" placeholder="Дополнительная информация..."></textarea>
         </div>
 
         <div class="modal-actions">
             <button class="action-btn" onclick="closeEditModal()">Отмена</button>
-            <button class="action-btn primary" onclick="saveEditedData()">💾 Сохранить</button>
+            <button class="action-btn primary" onclick="saveEditedData()">Сохранить</button>
         </div>
     </div>
 </div>
@@ -972,8 +972,8 @@
 
                 ${!cancelled ? `
                 <div class="booking-actions">
-                    <button class="action-btn" onclick="startEditData(${booking.id})">✏️ Изменить данные</button>
-                    <button class="action-btn primary" onclick="startUploadPassport(${booking.id})">📄 Загрузить паспорт</button>
+                    <button class="action-btn" onclick="startEditData(${booking.id})">Изменить данные</button>
+                    <button class="action-btn primary" onclick="startUploadPassport(${booking.id})">Загрузить паспорт</button>
                     <button class="action-btn" onclick="startReschedule(${booking.id})">Перенести</button>
                     <button class="action-btn danger" onclick="confirmCancel(${booking.id})">Отменить</button>
                 </div>
