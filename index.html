@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бронирование Bull Project</title>
+    <title>Hickmet Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="config.js"></script>
     <style>
@@ -444,8 +444,7 @@
 <body>
 
 <div class="app-header">
-    <h1>🕌 Бронирование Умры</h1>
-    <p>Bull Project - Система бронирования</p>
+    <h1>Бронирование Умры</h1>
 </div>
 
 <div id="step_1">
@@ -455,7 +454,7 @@
     </div>
 
     <div class="smart-box">
-        <label><span class="icon">📅</span>1. Дата вылета:</label>
+        <label><span class="icon"></span>1. Дата вылета:</label>
         <div class="date-search">
             <input type="text" id="date_input" placeholder="13.12">
             <button type="button" onclick="handleSearch()" class="search-btn">Найти</button>
@@ -470,7 +469,7 @@
     <input type="hidden" id="sheet_name_hidden">
     <input type="hidden" id="table_id_hidden">
 
-    <label><span class="icon">🛫</span>Город вылета:</label>
+    <label><span class="icon"></span>Город вылета:</label>
     <div class="city-buttons">
         <input type="radio" name="departure_city" id="c_ala" value="Almaty" checked>
         <label for="c_ala">Almaty</label>
@@ -478,20 +477,20 @@
         <label for="c_ast">Astana</label>
     </div>
 
-    <label><span class="icon">👥</span>Паломники:</label>
+    <label><span class="icon"></span>Паломники:</label>
     <div id="pilgrims-container"></div>
 
     <div class="row">
         <div class="col">
-            <label>AVIA:</label>
+            <label>AVIA запрос:</label>
             <input type="text" id="avia" placeholder="">
         </div>
         <div class="col">
-            <label>VISA:</label>
+            <label>VISA действующая:</label>
             <select id="visa_status">
-                <option value="UMRAH VISA">UMRAH VISA</option>
+                <option value="UMRAH VISA">NO VISA</option>
                 <option value="TOUR VISA">TOUR VISA</option>
-                <option value="NO VISA">NO VISA</option>
+                <option value="NO VISA">UMRAH VISA</option>
             </select>
         </div>
     </div>
@@ -500,18 +499,20 @@
         <div class="col">
             <label>Тип номера:</label>
             <select id="room_type">
-                <option value="Quad">Quadro</option>
+                <option value="Quad">Double</option>
                 <option value="Triple">Triple</option>
-                <option value="Double">Double</option>
+                <option value="Double">Quadro</option>
                 <option value="Single">Single</option>
             </select>
         </div>
         <div class="col">
             <label>Питание:</label>
             <select id="meal_type">
-                <option value="BB">BB</option>
-                <option value="HB">HB</option>
-                <option value="FB">FB</option>
+                <option value="BB">HB</option>
+                <option value="HB">BB</option>
+                <option value="FB">INF</option>
+                <option value="FB">CHD</option>
+                <option value="FB">RO</option>
             </select>
         </div>
     </div>
@@ -566,7 +567,7 @@
             <label>Источник:</label>
             <input type="text" id="source" placeholder="">
 
-            <label>🚆 Поезд:</label>
+            <label>Поезд:</label>
             <select id="train">
                 <option value="-">Нет</option>
                 <option value="YES">Да</option>
@@ -592,7 +593,7 @@
     </div>
 
     <div class="smart-box">
-        <h3>🛏 Размещение</h3>
+        <h3>Размещение</h3>
 
         <div id="group_logic" style="display: none; margin-bottom: 20px;">
             <label>Тип размещения группы:</label>
@@ -612,8 +613,6 @@
             <input type="radio" name="place_method" id="meth_pick" value="pick" onchange="updateUI()">
             <label for="meth_pick">Подселить (Выбрать комнату)</label>
 
-            <input type="radio" name="place_method" id="meth_man" value="manual" onchange="updateUI()">
-            <label for="meth_man"> Конкретная строка</label>
         </div>
 
         <div id="room_list_div" style="display: none; margin-top: 20px;">
@@ -684,6 +683,7 @@
 
     console.log("📥 URL параметр pilgrims:", pRaw);
 
+    // Основной сценарий: данные приходят через URL (бот)
     if (pRaw) {
         try {
             const pilgrims = JSON.parse(decodeURIComponent(pRaw));
@@ -707,6 +707,38 @@
         } catch(e) {
             console.error("❌ Ошибка парсинга данных:", e);
             alert("Ошибка загрузки данных паспортов");
+        }
+    } else {
+        // Фолбек для переноса из истории: читаем данные из localStorage
+        const isReschedule = localStorage.getItem('is_reschedule') === 'true';
+        const rescheduleDataRaw = localStorage.getItem('reschedule_data');
+
+        if (isReschedule && rescheduleDataRaw) {
+            try {
+                const p = JSON.parse(rescheduleDataRaw);
+                pilgrimsData = [{
+                    name: `${p.last_name || '-'} ${p.first_name || '-'}`,
+                    last_name: p.last_name || "-",
+                    first_name: p.first_name || "-",
+                    phone: p.phone || "-",
+                    passport_num: p.passport_num || "-",
+                    date_of_birth: p.date_of_birth || "-",
+                    gender: p.gender || "M",
+                    passport_expiry: p.passport_expiry || "-",
+                    iin: p.iin || "-",
+                    passport_image_path: p.passport_image_path || null
+                }];
+                console.log("♻️ Загрузка переноса из localStorage:", pilgrimsData);
+                renderPilgrims();
+            } catch (e) {
+                console.error("❌ Ошибка парсинга переноса:", e);
+                alert("Ошибка загрузки данных переноса");
+            } finally {
+                // Чистим флаг, чтобы не мешало следующему запуску
+                localStorage.removeItem('is_reschedule');
+                localStorage.removeItem('reschedule_data');
+                localStorage.removeItem('reschedule_booking_id');
+            }
         }
     }
 
