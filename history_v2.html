@@ -499,7 +499,30 @@
             color: var(--text-secondary);
             font-size: 18px;
         }
-        
+
+        /* Loading overlay for file uploads */
+        body > .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        body > .loading p {
+            color: white;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
         .spinner {
             display: inline-block;
             width: 40px;
@@ -509,7 +532,15 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
+
+        body > .loading .spinner {
+            width: 60px;
+            height: 60px;
+            border-width: 6px;
+            border-color: rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -1085,23 +1116,33 @@
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
 
-        const pilgrimData = {
-            first_name: booking.guest_first_name,
-            last_name: booking.guest_last_name,
-            phone: booking.client_phone,
-            passport_num: booking.passport_num,
-            date_of_birth: booking.date_of_birth,
-            gender: booking.gender,
-            passport_expiry: booking.passport_expiry,
-            iin: booking.guest_iin
+        // Формируем данные паломника для передачи в index.html
+        const pilgrim = {
+            last_name: booking.guest_last_name || "-",
+            first_name: booking.guest_first_name || "-",
+            gender: booking.gender || "M",
+            date_of_birth: booking.date_of_birth || "-",
+            passport_num: booking.passport_num || "-",
+            passport_expiry: booking.passport_expiry || "-",
+            iin: booking.guest_iin || "-",
+            phone: booking.client_phone || "-",
+            passport_image_path: booking.passport_image_path || null
         };
 
-        localStorage.setItem('reschedule_booking_id', booking.id);
-        localStorage.setItem('reschedule_data', JSON.stringify(pilgrimData));
-        localStorage.setItem('is_reschedule', 'true');
+        // Кодируем данные для URL
+        const pilgrimsParam = encodeURIComponent(JSON.stringify([pilgrim]));
 
-        // Используем существующую форму бронирования
-        window.location.href = 'index.html';
+        // Формируем URL с параметрами для переноса
+        const url = new URL('index.html', window.location.origin);
+        url.searchParams.set('pilgrims', pilgrimsParam);
+        url.searchParams.set('mode', 'reschedule');
+        url.searchParams.set('old_booking_id', booking.id);
+
+        console.log('♻️ Открываю перенос брони #', booking.id);
+        console.log('URL:', url.href);
+
+        // Переходим на форму переноса
+        window.location.href = url.href;
     }
 
     function rescheduleBooking() {
@@ -1134,20 +1175,115 @@
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
 
-        alert('🚧 Функция "Изменить данные" в разработке\n\nСкоро здесь можно будет редактировать:\n• Телефон\n• Комментарий\n• Сумму оплаты');
+        // Формируем данные паломника для передачи в index.html
+        const pilgrim = {
+            last_name: booking.guest_last_name || "-",
+            first_name: booking.guest_first_name || "-",
+            gender: booking.gender || "M",
+            date_of_birth: booking.date_of_birth || "-",
+            passport_num: booking.passport_num || "-",
+            passport_expiry: booking.passport_expiry || "-",
+            iin: booking.guest_iin || "-",
+            phone: booking.client_phone || "-",
+            passport_image_path: booking.passport_image_path || null
+        };
 
-        // TODO: Реализовать модальное окно с формой редактирования
-        console.log('Edit booking:', booking);
+        // Кодируем данные для URL
+        const pilgrimsParam = encodeURIComponent(JSON.stringify([pilgrim]));
+
+        // Формируем URL с параметрами для редактирования
+        const url = new URL('index.html', window.location.origin);
+        url.searchParams.set('pilgrims', pilgrimsParam);
+        url.searchParams.set('mode', 'edit');
+        url.searchParams.set('booking_id', booking.id);
+
+        console.log('✏️ Открываю редактирование брони #', booking.id);
+        console.log('URL:', url.href);
+
+        // Переходим на форму редактирования
+        window.location.href = url.href;
     }
 
-    function startUploadPassport(bookingId) {
+    async function startUploadPassport(bookingId) {
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
 
-        alert('🚧 Функция "Загрузить паспорт" в разработке\n\nСкоро здесь можно будет:\n• Загрузить новый паспорт\n• Заменить существующий\n• Автоматически распознать данные');
+        // Создаем input для выбора файла
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.jpg,.jpeg,.png,.pdf';
 
-        // TODO: Реализовать загрузку файла и парсинг паспорта
-        console.log('Upload passport for:', booking);
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                // Показываем индикатор загрузки
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'loading';
+                loadingDiv.innerHTML = '<div class="spinner"></div><p>⏳ Загрузка и распознавание паспорта...</p>';
+                document.body.appendChild(loadingDiv);
+
+                // Загружаем файл на сервер
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const uploadRes = await fetch(`${API_URL}/api/passports/upload`, {
+                    method: "POST",
+                    body: formData,
+                    headers: {"ngrok-skip-browser-warning": "1"}
+                });
+
+                const uploadJson = await uploadRes.json();
+
+                if (!uploadRes.ok || !uploadJson.ok) {
+                    throw new Error(uploadJson.error || `Ошибка загрузки: ${uploadRes.status}`);
+                }
+
+                const passportPath = uploadJson.path;
+                console.log('✅ Паспорт загружен:', passportPath);
+
+                // Обновляем путь к паспорту в БД
+                const updateRes = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "1"
+                    },
+                    body: JSON.stringify({
+                        pilgrims: [{
+                            last_name: booking.guest_last_name,
+                            first_name: booking.guest_first_name,
+                            passport_image_path: passportPath
+                        }]
+                    })
+                });
+
+                const updateJson = await updateRes.json();
+
+                if (!updateRes.ok || !updateJson.ok) {
+                    throw new Error(updateJson.error || 'Ошибка обновления данных');
+                }
+
+                // Убираем индикатор загрузки
+                document.body.removeChild(loadingDiv);
+
+                alert('✅ Паспорт успешно загружен и сохранен!');
+
+                // Перезагружаем список бронирований
+                const user = tg.initDataUnsafe?.user;
+                await loadBookings(urlManagerId || user?.id || 0);
+
+            } catch (err) {
+                alert('❌ Ошибка загрузки паспорта: ' + err.message);
+                // Убираем индикатор загрузки если он есть
+                const loadingDiv = document.querySelector('.loading');
+                if (loadingDiv) document.body.removeChild(loadingDiv);
+            }
+        };
+
+        // Открываем диалог выбора файла
+        input.click();
     }
 
     document.getElementById('detail-modal').addEventListener('click', function(e) {
