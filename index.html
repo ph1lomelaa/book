@@ -461,7 +461,7 @@
             <button type="button" onclick="handleSearch()" class="search-btn">Найти</button>
         </div>
 
-        <label style="margin-top: 16px;"><span class="icon">📦</span>2. Пакет:</label>
+        <label style="margin-top: 16px;"><span class="icon"></span>2. Пакет:</label>
         <select id="pkg_name" disabled>
             <option value="">Сначала введите дату</option>
         </select>
@@ -575,7 +575,7 @@
     </details>
 
     <label>Менеджер:</label>
-    <input type="text" id="manager_name_text" readonly style="background: var(--bg-secondary);">
+    <input type="text" id="manager_name_text" placeholder="Введите имя менеджера...">
     
     <label>Комментарий:</label>
     <textarea id="comment" rows="3" placeholder="Дополнительная информация..."></textarea>
@@ -747,9 +747,10 @@
         el.classList.toggle('visible');
     }
 
-    if (tg.initDataUnsafe?.user) {
-        document.getElementById('manager_name_text').value = tg.initDataUnsafe.user.first_name;
-    }
+    // Поле "Менеджер" теперь заполняется вручную
+    // if (tg.initDataUnsafe?.user) {
+    //     document.getElementById('manager_name_text').value = tg.initDataUnsafe.user.first_name;
+    // }
 
     function goToStep2() {
         const pkg = document.getElementById('pkg_name').value;
