@@ -469,7 +469,7 @@
     <input type="hidden" id="sheet_name_hidden">
     <input type="hidden" id="table_id_hidden">
 
-    <label><span class="icon"></span>Город вылета:</label>
+    <label><span class="icon">🛫</span>Город вылета:</label>
     <div class="city-buttons">
         <input type="radio" name="departure_city" id="c_ala" value="Almaty" checked>
         <label for="c_ala">Almaty</label>
@@ -640,6 +640,7 @@
 
     const API_URL = window.BULL_API_URL;
     let pilgrimsData = [];
+    let uploadedPassports = {}; // idx -> path
 
     // --- ПОИСК ПАКЕТОВ ---
     async function handleSearch() {
@@ -677,11 +678,38 @@
         document.getElementById('table_id_hidden').value = opt.dataset.table;
     };
 
+    async function uploadPassport(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch(`${API_URL}/api/passports/upload`, {
+            method: "POST",
+            body: formData,
+            headers: {"ngrok-skip-browser-warning":"1"}
+        });
+        const json = await res.json();
+        if (!res.ok || !json.ok) {
+            throw (json.error || `Ошибка сервера ${res.status}`);
+        }
+        return json.path;
+    }
+
     // --- ПАРСИНГ ТУРИСТОВ ИЗ URL ---
     const urlParams = new URLSearchParams(window.location.search);
     const pRaw = urlParams.get('pilgrims');
+    const modeParam = urlParams.get('mode');
+    const editBookingId = urlParams.get('booking_id');
+    const oldBookingId = urlParams.get('old_booking_id');
 
-    console.log("📥 URL параметр pilgrims:", pRaw);
+    console.log("📥 URL параметры:");
+    console.log("   pilgrims:", pRaw ? "есть данные" : "нет");
+    console.log("   mode:", modeParam);
+    console.log("   booking_id:", editBookingId);
+    console.log("   old_booking_id:", oldBookingId);
+
+    let currentMode = modeParam || localStorage.getItem('mode') || 'create';
+    let currentBookingId = editBookingId || localStorage.getItem('edit_booking_id') || null;
+    let currentOldBookingId = oldBookingId || localStorage.getItem('old_booking_id') || null;
 
     // Основной сценарий: данные приходят через URL (бот)
     if (pRaw) {
@@ -709,9 +737,11 @@
             alert("Ошибка загрузки данных паспортов");
         }
     } else {
-        // Фолбек для переноса из истории: читаем данные из localStorage
+        // Фолбек для переноса или редактирования из истории: читаем данные из localStorage
         const isReschedule = localStorage.getItem('is_reschedule') === 'true';
         const rescheduleDataRaw = localStorage.getItem('reschedule_data');
+        const isEdit = localStorage.getItem('is_edit') === 'true';
+        const editDataRaw = localStorage.getItem('edit_data');
 
         if (isReschedule && rescheduleDataRaw) {
             try {
@@ -734,10 +764,34 @@
                 console.error("❌ Ошибка парсинга переноса:", e);
                 alert("Ошибка загрузки данных переноса");
             } finally {
-                // Чистим флаг, чтобы не мешало следующему запуску
                 localStorage.removeItem('is_reschedule');
                 localStorage.removeItem('reschedule_data');
                 localStorage.removeItem('reschedule_booking_id');
+            }
+        } else if (isEdit && editDataRaw) {
+            try {
+                const p = JSON.parse(editDataRaw);
+                currentMode = 'edit';
+                currentBookingId = localStorage.getItem('edit_booking_id') || null;
+                pilgrimsData = [{
+                    name: `${p.last_name || '-'} ${p.first_name || '-'}`,
+                    last_name: p.last_name || "-",
+                    first_name: p.first_name || "-",
+                    phone: p.phone || "-",
+                    passport_num: p.passport_num || "-",
+                    date_of_birth: p.date_of_birth || "-",
+                    gender: p.gender || "M",
+                    passport_expiry: p.passport_expiry || "-",
+                    iin: p.iin || "-",
+                    passport_image_path: p.passport_image_path || null
+                }];
+                console.log("✏️ Загрузка редактирования из localStorage:", pilgrimsData);
+                renderPilgrims();
+            } catch (e) {
+                console.error("❌ Ошибка парсинга редактирования:", e);
+                alert("Ошибка загрузки данных для редактирования");
+            } finally {
+                // Не чистим edit-флаги сразу, чтобы можно было повторно открыть при возврате
             }
         }
     }
@@ -753,6 +807,11 @@
                     </button>
                 </div>
                 <input type="tel" class="phone-input" data-idx="${idx}" placeholder="Номер телефона" value="${p.phone !== '-' ? p.phone : ''}">
+                <div class="upload-wrapper">
+                    <label>Фото паспорта (jpg/png/pdf):</label>
+                    <input type="file" accept=".jpg,.jpeg,.png,.pdf" data-idx="${idx}" class="passport-file">
+                    ${p.passport_image_path ? `<div class="file-info">Текущий файл: ${p.passport_image_path}</div>` : ''}
+                </div>
 
                 <div id="passport_${idx}" class="passport-data">
                     <div class="passport-field"><strong>Фамилия:</strong> <span>${p.last_name}</span></div>
@@ -770,6 +829,24 @@
             input.addEventListener('input', (e) => {
                 const idx = e.target.dataset.idx;
                 pilgrimsData[idx].phone = e.target.value;
+            });
+        });
+        document.querySelectorAll('.passport-file').forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const idx = e.target.dataset.idx;
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    e.target.disabled = true;
+                    e.target.insertAdjacentHTML('afterend', '<div class="file-info">⏳ Загрузка...</div>');
+                    const path = await uploadPassport(file);
+                    pilgrimsData[idx].passport_image_path = path;
+                    renderPilgrims(); // перерисовать для отображения имени файла
+                } catch (err) {
+                    alert("Ошибка загрузки файла: " + err);
+                    e.target.value = "";
+                }
             });
         });
     }
@@ -889,13 +966,40 @@
             manager_id: tg.initDataUnsafe?.user?.id || 0
         };
 
+        console.log("📤 Режим отправки:", currentMode);
+        console.log("   booking_id:", currentBookingId);
+        console.log("   old_booking_id:", currentOldBookingId);
+
         try {
             const btn = document.getElementById('finish_btn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="icon">⏳</span> Записываю...';
 
-            const res = await fetch(`${API_URL}/api/bookings/submit`, {
-                method: "POST",
+            // Определяем endpoint и метод в зависимости от режима
+            let endpoint, method, btnText;
+
+            if (currentMode === 'edit' && currentBookingId) {
+                // Режим редактирования - обновляем существующую бронь
+                endpoint = `${API_URL}/api/bookings/${currentBookingId}`;
+                method = "PATCH";
+                btnText = '<span class="icon">⏳</span> Сохраняю изменения...';
+                console.log("✏️ РЕДАКТИРОВАНИЕ брони #" + currentBookingId);
+            } else {
+                // Режим создания или переноса - создаем новую бронь
+                endpoint = `${API_URL}/api/bookings/submit`;
+                method = "POST";
+                btnText = '<span class="icon">⏳</span> Записываю...';
+
+                if (currentMode === 'reschedule' && currentOldBookingId) {
+                    console.log("♻️ ПЕРЕНОС брони (старая #" + currentOldBookingId + ")");
+                } else {
+                    console.log("➕ СОЗДАНИЕ новой брони");
+                }
+            }
+
+            btn.innerHTML = btnText;
+
+            const res = await fetch(endpoint, {
+                method,
                 headers: {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "1"
@@ -913,12 +1017,21 @@
                 return;
             }
 
-            // Показываем сообщение об успехе
-            alert("✅ Бронь успешно размещена!");
+            // Показываем сообщение об успехе в зависимости от режима
+            let successMessage;
+            if (currentMode === 'edit') {
+                successMessage = "✅ Изменения успешно сохранены!";
+            } else if (currentMode === 'reschedule') {
+                successMessage = "✅ Перенос завершен успешно!";
+            } else {
+                successMessage = "✅ Бронь успешно размещена!";
+            }
+            alert(successMessage);
 
             // Отправляем событие в Telegram для возврата в главное меню
             tg.sendData(JSON.stringify({
                 action: "booking_completed",
+                mode: currentMode,
                 saved_rows: json.saved_rows || []
             }));
 
