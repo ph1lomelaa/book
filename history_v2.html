@@ -1045,6 +1045,7 @@
                 ${!cancelled ? `
                 <div class="booking-actions">
                     <button class="action-btn" onclick="startEditData(${booking.id})">✏️ Изменить</button>
+                    <button class="action-btn" onclick="startUploadPassport(${booking.id})">📄 Загрузить паспорт</button>
                     <button class="action-btn" onclick="startReschedule(${booking.id})">Перенести</button>
                     <button class="action-btn danger" onclick="confirmCancel(${booking.id})">Отменить</button>
                 </div>
@@ -1210,6 +1211,89 @@
         if (selectedBooking) {
             startReschedule(selectedBooking.id);
         }
+    }
+
+    async function startUploadPassport(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.jpg,.jpeg,.png,.pdf';
+
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // overlay loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = '<div class="spinner"></div><p>⏳ Загрузка и распознавание паспорта...</p>';
+            document.body.appendChild(loadingDiv);
+
+            try {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const uploadRes = await fetch(`${API_URL}/api/passports/upload`, {
+                    method: "POST",
+                    body: formData,
+                    headers: {"ngrok-skip-browser-warning": "1"}
+                });
+                const uploadJson = await uploadRes.json();
+                if (!uploadRes.ok || !uploadJson.ok) {
+                    throw new Error(uploadJson.error || `Ошибка загрузки: ${uploadRes.status}`);
+                }
+
+                const parsedData = uploadJson.parsed_data || uploadJson.data || {};
+                const passportPath = uploadJson.path;
+
+                const patchBody = {
+                    verify_name: true,
+                    sheet_row_number: booking.sheet_row_number,
+                    package_name: booking.package_name,
+                    sheet_name: booking.sheet_name,
+                    table_id: booking.table_id,
+                    pilgrims: [{
+                        // имя/фамилию не трогаем
+                        gender: parsedData.gender,
+                        date_of_birth: parsedData.date_of_birth,
+                        passport_num: parsedData.passport_num,
+                        passport_expiry: parsedData.passport_expiry,
+                        iin: parsedData.iin,
+                        passport_image_path: passportPath
+                    }]
+                };
+
+                const updateRes = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "1"
+                    },
+                    body: JSON.stringify(patchBody)
+                });
+                const updateJson = await updateRes.json();
+                if (!updateRes.ok || !updateJson.ok) {
+                    throw new Error(updateJson.error || 'Ошибка обновления данных');
+                }
+
+                let msg = '✅ Паспорт загружен и данные обновлены.';
+                if (parsedData.passport_num) msg += `\nПаспорт: ${parsedData.passport_num}`;
+                if (parsedData.passport_expiry) msg += `\nСрок: ${parsedData.passport_expiry}`;
+                if (parsedData.date_of_birth) msg += `\nДР: ${parsedData.date_of_birth}`;
+                alert(msg);
+
+                const user = tg.initDataUnsafe?.user;
+                await loadBookings(urlManagerId || user?.id || 0);
+            } catch (err) {
+                alert('❌ Ошибка загрузки: ' + err.message);
+            } finally {
+                document.body.removeChild(loadingDiv);
+            }
+        };
+
+        input.click();
     }
 
     function showEmpty() {
