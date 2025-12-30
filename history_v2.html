@@ -587,7 +587,7 @@
 <!-- Модалка редактирования -->
 <div class="modal" id="edit-modal">
     <div class="modal-content">
-        <h2 style="font-size: 20px; font-weight: 700; color: var(--accent-dark); margin-bottom: 20px;">Редактировать данные</h2>
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--accent-dark); margin-bottom: 20px;">✏️ Редактировать данные</h2>
 
         <div style="display:flex; gap:10px; margin-bottom: 16px;">
             <div style="flex:1;">
@@ -964,6 +964,8 @@
         const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
         const managerName = safeValue(booking.manager_name_text || booking.manager_name);
         const passportImage = booking.passport_image_path;
+        const groupMembers = Array.isArray(booking.group_members) ? booking.group_members : [];
+        const groupLabel = groupMembers.length > 1 ? groupMembers.join(', ') : null;
 
         // Additional details
         const passportNum = safeValue(booking.passport_num);
@@ -1002,6 +1004,7 @@
                     <div class="booking-detail">Пакет: <strong>${packageName}</strong></div>
                     <div class="booking-detail">Дата: <strong>${sheetName}</strong></div>
                     <div class="booking-detail">Комната: <strong>${roomType}</strong></div>
+                    ${groupLabel ? `<div class="booking-detail">Группа: <strong>${groupLabel}</strong></div>` : ''}
                 </div>
 
                 <button class="details-btn" onclick="toggleDetails(${cardIndex})">
@@ -1009,6 +1012,13 @@
                 </button>
 
                 <div class="booking-details-full" id="details-${cardIndex}">
+                    ${groupLabel ? `
+                    <div class="details-section">
+                        <div class="details-section-title">Группа</div>
+                        <div class="booking-detail">Состав: <strong>${groupLabel}</strong></div>
+                    </div>
+                    ` : ''}
+
                     <div class="details-section">
                         <div class="details-section-title">Паспортные данные</div>
                         <div class="booking-detail">Пол: <strong>${gender}</strong></div>
