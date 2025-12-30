@@ -586,21 +586,23 @@
                     rescheduled: 'ПЕРЕНОС',
                     new: 'АКТИВНА'
                 };
-                const statusText = statusTextMap[status] || (status ? status.toUpperCase() : 'АКТИВНА');
+            const statusText = statusTextMap[status] || (status ? status.toUpperCase() : 'АКТИВНА');
 
-                const createdLabel = formatDateTime(booking.created_at);
-                const guestNameRaw = `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.trim();
-                const guestName = guestNameRaw ? guestNameRaw : 'Без имени';
-                const packageName = safeValue(booking.package_name);
-                const sheetName = safeValue(booking.sheet_name);
-                const roomType = safeValue(booking.room_type);
-                const placementTypeRaw = booking.placement_type;
-                const placementType = placementMap[placementTypeRaw] || safeValue(placementTypeRaw);
-                const phone = safeValue(booking.client_phone);
-                const price = safeValue(booking.price);
-                const priceLabel = price === '-' ? '-' : `${price} тг`;
-                const amountPaid = safeValue(booking.amount_paid);
-                const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
+            const createdLabel = formatDateTime(booking.created_at);
+            const guestNameRaw = `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.trim();
+            const guestName = guestNameRaw ? guestNameRaw : 'Без имени';
+            const packageName = safeValue(booking.package_name);
+            const sheetName = safeValue(booking.sheet_name);
+            const roomType = safeValue(booking.room_type);
+            const placementTypeRaw = booking.placement_type;
+            const placementType = placementMap[placementTypeRaw] || safeValue(placementTypeRaw);
+            const groupMembers = Array.isArray(booking.group_members) ? booking.group_members : [];
+            const groupLabel = groupMembers.length > 1 ? groupMembers.join(', ') : null;
+            const phone = safeValue(booking.client_phone);
+            const price = safeValue(booking.price);
+            const priceLabel = price === '-' ? '-' : `${price} тг`;
+            const amountPaid = safeValue(booking.amount_paid);
+            const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
                 const managerName = safeValue(booking.manager_name || booking.manager_name_text);
                 const gender = booking.gender === 'F' ? 'Женский' : 'Мужской';
                 const dateOfBirth = safeValue(booking.date_of_birth);
@@ -645,6 +647,7 @@
                             <div class="booking-detail">Размещение: <strong>${placementType}</strong></div>
                             <div class="booking-detail">Комната: <strong>${roomType}</strong></div>
                             <div class="booking-detail">Строка листа: <strong>${sheetRow}</strong></div>
+                            ${groupLabel ? `<div class="booking-detail">Группа: <strong>${groupLabel}</strong></div>` : ''}
                         </div>
 
                         <button class="details-btn" onclick="toggleDetails('details-${index}', this)">
@@ -652,6 +655,10 @@
                         </button>
 
                         <div class="booking-details-full" id="details-${index}">
+                            <div class="details-section">
+                                ${groupLabel ? `<div class="booking-detail">Группа: <strong>${groupLabel}</strong></div>` : ''}
+                            </div>
+
                             <div class="details-section">
                                 <div class="details-section-title">Паспортные данные</div>
                                 <div class="booking-detail">Пол: <strong>${gender}</strong></div>
