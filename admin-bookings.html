@@ -756,6 +756,8 @@
 
         // Скачивание паспорта в формате PDF
         async function downloadPassportPDF(evt, bookingId) {
+            // Не даем ссылке (если это кнопка в форме) перезагрузить страницу
+            evt?.preventDefault();
             try {
                 const button = evt?.target;
                 const originalText = button?.innerHTML;
@@ -769,7 +771,7 @@
                 console.log(`📥 Запрос PDF для booking ${bookingId}...`);
 
                 // Запрашиваем PDF с сервера
-                const response = await apiFetch(`${API_BASE}/api/care/passport-pdf/${bookingId}`);
+                const response = await apiFetch(`${API_BASE}/api/care/passport-pdf/${bookingId}?ngrok-skip-browser-warning=1`);
 
                 console.log(`📨 Получен ответ: status=${response.status}, ok=${response.ok}`);
 
