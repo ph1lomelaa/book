@@ -770,8 +770,24 @@
 
                 console.log(`📥 Запрос PDF для booking ${bookingId}...`);
 
-                // Запрашиваем PDF с сервера
-                const response = await apiFetch(`${API_BASE}/api/care/passport-pdf/${bookingId}?ngrok-skip-browser-warning=1`);
+                const directUrl = `${API_BASE}/api/care/passport-pdf/${bookingId}?ngrok-skip-browser-warning=1`;
+
+                // Если внутри Telegram WebApp, скачивание через blob часто блокируется.
+                // Делаем прямое открытие ссылки (откроет в браузере и скачает файл).
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.openLink(directUrl);
+                    if (button) {
+                        button.innerHTML = '✅ PDF открыт';
+                        setTimeout(() => {
+                            button.innerHTML = originalText || '📄 Скачать PDF';
+                            button.disabled = false;
+                        }, 2000);
+                    }
+                    return;
+                }
+
+                // Обычный браузер: запрашиваем blob и скачиваем
+                const response = await apiFetch(directUrl);
 
                 console.log(`📨 Получен ответ: status=${response.status}, ok=${response.ok}`);
 
