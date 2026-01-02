@@ -288,8 +288,37 @@
             width: 100%;
             border-radius: 12px;
             border: 2px solid var(--border-color);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             object-fit: cover;
+        }
+
+        .passport-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .download-pdf-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+        }
+
+        .download-pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .download-pdf-btn:active {
+            transform: translateY(0);
         }
 
         .booking-detail {
@@ -630,12 +659,20 @@
 
                 if (passportImage) {
                     html += `
-                        <img
-                            src="${API_BASE}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1"
-                            alt="Паспорт"
-                            class="passport-image"
-                            onerror="this.style.display='none'"
-                        >
+                        <div class="passport-container">
+                            <img
+                                src="${API_BASE}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1"
+                                alt="Паспорт"
+                                class="passport-image"
+                                onerror="this.style.display='none'"
+                            >
+                            <button
+                                class="download-pdf-btn"
+                                onclick="downloadPassportPDF(${booking.id})"
+                            >
+                                📄 Скачать PDF с текстом
+                            </button>
+                        </div>
                     `;
                 }
 
@@ -715,6 +752,56 @@
             event.target.classList.add('active');
 
             renderBookings();
+        }
+
+        // Скачивание паспорта в формате PDF с текстовым слоем
+        async function downloadPassportPDF(bookingId) {
+            try {
+                const button = event.target;
+                const originalText = button.innerHTML;
+
+                // Показываем индикатор загрузки
+                button.innerHTML = '⏳ Создание PDF...';
+                button.disabled = true;
+
+                // Запрашиваем PDF с сервера
+                const response = await apiFetch(`${API_BASE}/api/care/passport-pdf/${bookingId}`);
+
+                if (!response.ok) {
+                    throw new Error('Ошибка получения PDF');
+                }
+
+                // Получаем blob данные
+                const blob = await response.blob();
+
+                // Создаем ссылку для скачивания
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `passport_${bookingId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+
+                // Очищаем
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                // Восстанавливаем кнопку
+                button.innerHTML = '✅ PDF скачан';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Ошибка скачивания PDF:', error);
+                const button = event.target;
+                button.innerHTML = '❌ Ошибка';
+                setTimeout(() => {
+                    button.innerHTML = '📄 Скачать PDF с текстом';
+                    button.disabled = false;
+                }, 2000);
+            }
         }
 
         function toggleDetails(detailId, btnElement) {
