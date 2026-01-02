@@ -1158,13 +1158,8 @@
                 const passportPath = uploadJson.path;
                 const parsedData = uploadJson.parsed_data || {};
 
-                // Только сохраняем файл, НЕ перезаписываем паспортные данные
+                // Только сохраняем файл, НЕ трогаем таблицу и не проверяем строку/ФИО
                 const patchBody = {
-                    verify_name: true,
-                    sheet_row_number: booking.sheet_row_number,
-                    package_name: booking.package_name,
-                    sheet_name: booking.sheet_name,
-                    table_id: booking.table_id,
                     pilgrims: [{
                         passport_image_path: passportPath
                     }]
