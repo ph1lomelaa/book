@@ -1226,27 +1226,9 @@
         editingBookingId = bookingId;
         editingBooking = booking;
 
-        // Заполняем поля
-        document.getElementById('edit-last-name').value = booking.guest_last_name || '';
-        document.getElementById('edit-first-name').value = booking.guest_first_name || '';
+        // Заполняем только существующие поля в модалке
         document.getElementById('edit-phone').value = booking.client_phone || '';
-        document.getElementById('edit-gender').value = booking.gender || 'M';
-        document.getElementById('edit-passport').value = booking.passport_num || '';
-        document.getElementById('edit-passport-exp').value = booking.passport_expiry || '';
-        document.getElementById('edit-dob').value = booking.date_of_birth || '';
-        document.getElementById('edit-iin').value = booking.guest_iin || '';
-        document.getElementById('edit-visa').value = booking.visa_status || '';
-        document.getElementById('edit-avia').value = booking.avia || '';
-        document.getElementById('edit-meal').value = booking.meal_type || '';
-        document.getElementById('edit-departure').value = booking.departure_city || '';
-        document.getElementById('edit-region').value = booking.region || '';
-        document.getElementById('edit-train').value = booking.train || '';
-        document.getElementById('edit-price').value = booking.price || '';
         document.getElementById('edit-amount-paid').value = booking.amount_paid || '';
-        document.getElementById('edit-exchange').value = booking.exchange_rate || '';
-        document.getElementById('edit-discount').value = booking.discount || '';
-        document.getElementById('edit-manager').value = booking.manager_name_text || booking.manager_name || '';
-        document.getElementById('edit-source').value = booking.source || '';
         document.getElementById('edit-comment').value = booking.comment || '';
 
         document.getElementById('edit-modal').classList.add('active');
@@ -1261,34 +1243,12 @@
     async function saveEditedData() {
         if (!editingBookingId || !editingBooking) return;
 
+        // Отправляем только разрешенные поля (телефон, сумма оплаты, комментарий)
         const body = {
-            verify_name: true,
-            sheet_row_number: editingBooking.sheet_row_number,
-            package_name: editingBooking.package_name,
-            sheet_name: editingBooking.sheet_name,
-            table_id: editingBooking.table_id,
             pilgrims: [{
-                last_name: document.getElementById('edit-last-name').value.trim(),
-                first_name: document.getElementById('edit-first-name').value.trim(),
-                phone: document.getElementById('edit-phone').value.trim(),
-                gender: document.getElementById('edit-gender').value,
-                passport_num: document.getElementById('edit-passport').value.trim(),
-                passport_expiry: document.getElementById('edit-passport-exp').value.trim(),
-                date_of_birth: document.getElementById('edit-dob').value.trim(),
-                iin: document.getElementById('edit-iin').value.trim()
+                phone: document.getElementById('edit-phone').value.trim()
             }],
-            visa_status: document.getElementById('edit-visa').value.trim(),
-            avia: document.getElementById('edit-avia').value.trim(),
-            meal_type: document.getElementById('edit-meal').value.trim(),
-            departure_city: document.getElementById('edit-departure').value.trim(),
-            region: document.getElementById('edit-region').value.trim(),
-            train: document.getElementById('edit-train').value.trim(),
-            price: document.getElementById('edit-price').value.trim(),
             amount_paid: document.getElementById('edit-amount-paid').value.trim(),
-            exchange_rate: document.getElementById('edit-exchange').value.trim(),
-            discount: document.getElementById('edit-discount').value.trim(),
-            manager_name_text: document.getElementById('edit-manager').value.trim(),
-            source: document.getElementById('edit-source').value.trim(),
             comment: document.getElementById('edit-comment').value.trim()
         };
 
