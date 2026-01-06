@@ -145,6 +145,17 @@
             flex: 1;
         }
         
+        .name-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .name-row .name-input {
+            flex: 1;
+            font-size: 14px;
+        }
+        
         /* Стилизованные радио-кнопки */
         .city-buttons, .radio-group {
             display: flex;
@@ -938,10 +949,14 @@
         container.innerHTML = pilgrimsData.map((p, idx) => `
             <div class="tourist-card">
                 <div class="tourist-header">
-                    <span class="tourist-name">👤 ${p.name}</span>
+                    <span class="tourist-name" data-name-idx="${idx}">👤 ${p.last_name} ${p.first_name}</span>
                     <button onclick="togglePassportData(${idx})" class="passport-btn">
                         📋 Паспорт
                     </button>
+                </div>
+                <div class="name-row">
+                    <input type="text" class="name-input last-name-input" data-idx="${idx}" placeholder="Фамилия" value="${p.last_name !== '-' ? p.last_name : ''}">
+                    <input type="text" class="name-input first-name-input" data-idx="${idx}" placeholder="Имя" value="${p.first_name !== '-' ? p.first_name : ''}">
                 </div>
                 <input type="tel" class="phone-input" data-idx="${idx}" placeholder="Номер телефона" value="${p.phone !== '-' ? p.phone : ''}">
                 ${showUpload ? `
@@ -952,8 +967,8 @@
                 ` : ''}
 
                 <div id="passport_${idx}" class="passport-data">
-                    <div class="passport-field"><strong>Фамилия:</strong> <span>${p.last_name}</span></div>
-                    <div class="passport-field"><strong>Имя:</strong> <span>${p.first_name}</span></div>
+                    <div class="passport-field"><strong>Фамилия:</strong> <span class="passport-last-name">${p.last_name}</span></div>
+                    <div class="passport-field"><strong>Имя:</strong> <span class="passport-first-name">${p.first_name}</span></div>
                     <div class="passport-field"><strong>Пол:</strong> <span>${p.gender === 'M' ? '👨 Мужской' : '👩 Женский'}</span></div>
                     <div class="passport-field"><strong>Дата рождения:</strong> <span>${p.date_of_birth}</span></div>
                     <div class="passport-field"><strong>Паспорт:</strong> <span>${p.passport_num}</span></div>
@@ -963,13 +978,44 @@
             </div>
         `).join('');
 
-        document.querySelectorAll('.phone-input').forEach(input => {
+        const nameInputs = document.querySelectorAll('.name-input');
+        const phoneInputs = document.querySelectorAll('.phone-input');
+        const passportFields = document.querySelectorAll('.passport-file');
+
+        function updateNameDisplay(idx) {
+            const data = pilgrimsData[idx];
+            const header = document.querySelector(`[data-name-idx="${idx}"]`);
+            const displayName = `${data.last_name !== '-' ? data.last_name : ''} ${data.first_name !== '-' ? data.first_name : ''}`.trim();
+            if (header) {
+                header.textContent = `👤 ${displayName || '-'}`;
+            }
+            const lastSpan = document.querySelector(`#passport_${idx} .passport-last-name`);
+            const firstSpan = document.querySelector(`#passport_${idx} .passport-first-name`);
+            if (lastSpan) lastSpan.textContent = data.last_name;
+            if (firstSpan) firstSpan.textContent = data.first_name;
+            data.name = displayName || '-';
+        }
+
+        nameInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const idx = e.target.dataset.idx;
+                if (typeof pilgrimsData[idx] === 'undefined') return;
+                if (e.target.classList.contains('last-name-input')) {
+                    pilgrimsData[idx].last_name = e.target.value.trim() || '-';
+                } else {
+                    pilgrimsData[idx].first_name = e.target.value.trim() || '-';
+                }
+                updateNameDisplay(idx);
+            });
+        });
+
+        phoneInputs.forEach(input => {
             input.addEventListener('input', (e) => {
                 const idx = e.target.dataset.idx;
                 pilgrimsData[idx].phone = e.target.value;
             });
         });
-        document.querySelectorAll('.passport-file').forEach(input => {
+        passportFields.forEach(input => {
             input.addEventListener('change', async (e) => {
                 const idx = e.target.dataset.idx;
                 const file = e.target.files[0];
