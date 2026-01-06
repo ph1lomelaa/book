@@ -166,6 +166,42 @@
             margin-top: 10px;
             font-size: 14px;
         }
+
+        /* Чекбоксы INF/CHD */
+        .passenger-type-checkboxes {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+        }
+
+        .passenger-type-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: none;
+            letter-spacing: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .passenger-type-checkboxes input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent-brown);
+        }
+
+        .passenger-type-checkboxes label:hover {
+            color: var(--accent-dark);
+        }
         
         /* Стилизованные радио-кнопки */
         .city-buttons, .radio-group {
@@ -1091,7 +1127,9 @@
             passport_expiry: expiry,
             iin: iin,
             passport_image_path: passportPath,
-            _source_file: filename || ""
+            _source_file: filename || "",
+            is_infant: false,
+            is_child: false
         };
     }
 
@@ -1141,7 +1179,9 @@
                     gender: '-',
                     passport_expiry: '-',
                     iin: '-',
-                    passport_image_path: null
+                    passport_image_path: null,
+                    is_infant: false,
+                    is_child: false
                 });
             }
 
@@ -1173,7 +1213,9 @@
                 gender: p.gender || "M",
                 passport_expiry: p.passport_expiry || "-",
                 iin: p.iin || "-",
-                passport_image_path: p.passport_image_path || null
+                passport_image_path: p.passport_image_path || null,
+                is_infant: p.is_infant || false,
+                is_child: p.is_child || false
             }));
 
             console.log("📋 Финальный pilgrimsData:", pilgrimsData);
@@ -1402,6 +1444,17 @@
                     <option value="F" ${p.gender === 'F' ? 'selected' : ''}>Женский</option>
                 </select>
 
+                <div class="passenger-type-checkboxes">
+                    <label>
+                        <input type="checkbox" class="inf-checkbox" data-idx="${idx}" ${p.is_infant ? 'checked' : ''}>
+                        👶 INF (Младенец)
+                    </label>
+                    <label>
+                        <input type="checkbox" class="chd-checkbox" data-idx="${idx}" ${p.is_child ? 'checked' : ''}>
+                        🧒 CHD (Ребенок)
+                    </label>
+                </div>
+
                 <div id="passport_${idx}" class="passport-data">
                     <div class="passport-field"><strong>Фамилия:</strong> <span class="passport-last-name">${p.last_name}</span></div>
                     <div class="passport-field"><strong>Имя:</strong> <span class="passport-first-name">${p.first_name}</span></div>
@@ -1463,6 +1516,46 @@
                 if (typeof pilgrimsData[idx] === 'undefined') return;
                 pilgrimsData[idx].gender = e.target.value;
                 updateNameDisplay(idx);
+            });
+        });
+
+        // Обработчики для чекбоксов INF/CHD (взаимоисключающие)
+        const infCheckboxes = document.querySelectorAll('.inf-checkbox');
+        const chdCheckboxes = document.querySelectorAll('.chd-checkbox');
+
+        infCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const idx = e.target.dataset.idx;
+                if (typeof pilgrimsData[idx] === 'undefined') return;
+
+                pilgrimsData[idx].is_infant = e.target.checked;
+
+                // Если выбран INF, снимаем CHD
+                if (e.target.checked) {
+                    pilgrimsData[idx].is_child = false;
+                    const chdCheckbox = document.querySelector(`.chd-checkbox[data-idx="${idx}"]`);
+                    if (chdCheckbox) chdCheckbox.checked = false;
+                }
+
+                console.log(`Паломник ${idx}: INF=${pilgrimsData[idx].is_infant}, CHD=${pilgrimsData[idx].is_child}`);
+            });
+        });
+
+        chdCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const idx = e.target.dataset.idx;
+                if (typeof pilgrimsData[idx] === 'undefined') return;
+
+                pilgrimsData[idx].is_child = e.target.checked;
+
+                // Если выбран CHD, снимаем INF
+                if (e.target.checked) {
+                    pilgrimsData[idx].is_infant = false;
+                    const infCheckbox = document.querySelector(`.inf-checkbox[data-idx="${idx}"]`);
+                    if (infCheckbox) infCheckbox.checked = false;
+                }
+
+                console.log(`Паломник ${idx}: INF=${pilgrimsData[idx].is_infant}, CHD=${pilgrimsData[idx].is_child}`);
             });
         });
     }
@@ -1693,7 +1786,9 @@
             gender: p.gender,
             passport_expiry: p.passport_expiry,
             iin: p.iin,
-            passport_image_path: p.passport_image_path || null
+            passport_image_path: p.passport_image_path || null,
+            is_infant: p.is_infant || false,
+            is_child: p.is_child || false
         }));
 
         console.log("📤 Отправка данных на сервер:", pilgrims);
