@@ -134,6 +134,17 @@
             flex: 1;
         }
         
+        .manager-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .manager-control select,
+        .manager-control input {
+            flex: 1;
+        }
+        
         /* Стилизованные радио-кнопки */
         .city-buttons, .radio-group {
             display: flex;
@@ -591,7 +602,11 @@
     </details>
 
     <label>Менеджер:</label>
-    <input type="text" id="manager_name_text" placeholder="Введите имя менеджера...">
+    <div class="manager-control">
+        <select id="manager_select"></select>
+        <input type="text" id="manager_custom_input" placeholder="Если нет в списке, укажите имя" style="display: none;">
+    </div>
+    <input type="hidden" id="manager_name_text">
     
     <label>Комментарий:</label>
     <textarea id="comment" rows="3" placeholder="Дополнительная информация..."></textarea>
@@ -658,6 +673,94 @@
     let uploadedPassports = {}; // idx -> path
     let currentMode = 'create';
     let currentBookingId = null;
+
+    const MANAGER_NAMES = [
+        'Ulzhan',
+        'Bayan',
+        'Perizat',
+        'Zhanerke',
+        'Nazerke',
+        'Bektay',
+        'Islam',
+        'Nursultan',
+        'Qymbat',
+        'BAGDAT',
+        'SHYNGYS',
+        'SAGYNDYK',
+        'ARSEN',
+        'KULYAN',
+        'MARZUHA',
+        'AIYM',
+        'AYAZHAN',
+        'Omirkhan',
+        'Olzhas',
+        'Zarina',
+        'Symbat',
+        'Akzhol',
+        'bekbergen',
+        'AKTOLKYN',
+        'Arsentai',
+        'Madi Turkestan',
+        'ADILET',
+        'Zhandos',
+        'Bakhyt',
+        'Sardar',
+        'Yerkezhan',
+        'MURAT'
+    ];
+
+    const managerSelect = document.getElementById('manager_select');
+    const managerCustomInput = document.getElementById('manager_custom_input');
+    const managerHiddenInput = document.getElementById('manager_name_text');
+
+    function renderManagerOptions() {
+        const options = ['<option value="">Выберите менеджера</option>',
+            ...MANAGER_NAMES.map(name => `<option value="${name}">${name}</option>`),
+            '<option value="other">(Другое)</option>'
+        ];
+        managerSelect.innerHTML = options.join('');
+    }
+
+    function syncManagerValue() {
+        if (managerSelect.value === 'other') {
+            managerCustomInput.style.display = 'block';
+            managerHiddenInput.value = managerCustomInput.value;
+            managerCustomInput.focus();
+        } else {
+            managerCustomInput.style.display = 'none';
+            managerCustomInput.value = '';
+            managerHiddenInput.value = managerSelect.value;
+        }
+    }
+
+    function setManagerName(name) {
+        if (!name) {
+            managerSelect.value = '';
+            syncManagerValue();
+            return;
+        }
+        if (MANAGER_NAMES.includes(name)) {
+            managerSelect.value = name;
+            syncManagerValue();
+        } else {
+            managerSelect.value = 'other';
+            managerCustomInput.style.display = 'block';
+            managerCustomInput.value = name;
+            managerHiddenInput.value = name;
+        }
+    }
+
+    managerSelect.addEventListener('change', () => {
+        syncManagerValue();
+    });
+
+    managerCustomInput.addEventListener('input', () => {
+        if (managerSelect.value === 'other') {
+            managerHiddenInput.value = managerCustomInput.value;
+        }
+    });
+
+    renderManagerOptions();
 
     // --- ПОИСК ПАКЕТОВ ---
     async function handleSearch() {
@@ -1031,7 +1134,7 @@
 
             // Менеджер и комментарий
             if (booking.manager_name_text) {
-                document.getElementById('manager_name_text').value = booking.manager_name_text;
+                setManagerName(booking.manager_name_text);
             }
 
             if (booking.comment && booking.comment !== '-') {
@@ -1165,7 +1268,7 @@
             source: document.getElementById('source').value,
             region: document.getElementById('region').value,
             train: document.getElementById('train').value,
-            manager_name_text: document.getElementById('manager_name_text').value,
+            manager_name_text: managerHiddenInput.value,
             comment: document.getElementById('comment').value,
             placement_type: document.querySelector('input[name="placement_type"]:checked')?.value || 'separate',
             specific_row: row ? parseInt(row) : null,
