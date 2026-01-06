@@ -1156,12 +1156,21 @@
                 }
 
                 const passportPath = uploadJson.path;
-                const parsedData = uploadJson.parsed_data || {};
+                const parsedData = uploadJson.parsed_data || uploadJson.data || {};
 
                 // Только сохраняем файл, НЕ трогаем таблицу и не проверяем строку/ФИО
                 const patchBody = {
                     pilgrims: [{
-                        passport_image_path: passportPath
+                        passport_image_path: passportPath,
+                        // Пытаемся подтянуть распознанные данные (если есть)
+                        last_name: parsedData.last_name || null,
+                        first_name: parsedData.first_name || null,
+                        gender: parsedData.gender || null,
+                        date_of_birth: parsedData.date_of_birth || null,
+                        passport_num: parsedData.passport_num || null,
+                        passport_expiry: parsedData.passport_expiry || null,
+                        iin: parsedData.iin || null,
+                        phone: parsedData.phone || null,
                     }]
                 };
 
