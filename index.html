@@ -681,7 +681,6 @@
 
     const API_URL = window.BULL_API_URL;
     let pilgrimsData = [];
-    let uploadedPassports = {}; // idx -> path
     let currentMode = 'create';
     let currentBookingId = null;
 
@@ -811,27 +810,6 @@
         document.getElementById('table_id_hidden').value = opt.dataset.table;
     };
 
-    async function uploadPassport(file) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch(`${API_URL}/api/passports/upload`, {
-            method: "POST",
-            body: formData,
-            headers: {"ngrok-skip-browser-warning":"1"}
-        });
-        const json = await res.json();
-        if (!res.ok || !json.ok) {
-            throw (json.error || `Ошибка сервера ${res.status}`);
-        }
-
-        // Возвращаем весь объект с данными паспорта
-        return {
-            path: json.path,
-            data: json.data || {}
-        };
-    }
-
     // --- ПАРСИНГ ТУРИСТОВ ИЗ URL ---
     const urlParams = new URLSearchParams(window.location.search);
     const pRaw = urlParams.get('pilgrims');
@@ -945,7 +923,6 @@
 
     function renderPilgrims() {
         const container = document.getElementById('pilgrims-container');
-        const showUpload = currentMode !== 'edit'; // в режиме редактирования убираем загрузку/путь файла
         container.innerHTML = pilgrimsData.map((p, idx) => `
             <div class="tourist-card">
                 <div class="tourist-header">
@@ -959,12 +936,6 @@
                     <input type="text" class="name-input first-name-input" data-idx="${idx}" placeholder="Имя" value="${p.first_name !== '-' ? p.first_name : ''}">
                 </div>
                 <input type="tel" class="phone-input" data-idx="${idx}" placeholder="Номер телефона" value="${p.phone !== '-' ? p.phone : ''}">
-                ${showUpload ? `
-                    <div class="upload-wrapper">
-                        <label>Фото паспорта (jpg/png/pdf):</label>
-                        <input type="file" accept=".jpg,.jpeg,.png,.pdf" data-idx="${idx}" class="passport-file">
-                    </div>
-                ` : ''}
 
                 <div id="passport_${idx}" class="passport-data">
                     <div class="passport-field"><strong>Фамилия:</strong> <span class="passport-last-name">${p.last_name}</span></div>
@@ -980,7 +951,6 @@
 
         const nameInputs = document.querySelectorAll('.name-input');
         const phoneInputs = document.querySelectorAll('.phone-input');
-        const passportFields = document.querySelectorAll('.passport-file');
 
         function updateNameDisplay(idx) {
             const data = pilgrimsData[idx];
@@ -1015,65 +985,7 @@
                 pilgrimsData[idx].phone = e.target.value;
             });
         });
-        passportFields.forEach(input => {
-            input.addEventListener('change', async (e) => {
-                const idx = e.target.dataset.idx;
-                const file = e.target.files[0];
-                if (!file) return;
-
-                try {
-                    e.target.disabled = true;
-                    e.target.insertAdjacentHTML('afterend', '<div class="file-info">⏳ Загрузка и распознавание...</div>');
-
-                    const result = await uploadPassport(file);
-
-                    console.log("📄 Паспорт загружен:", result.path);
-                    console.log("📋 Распознанные данные:", result.data);
-
-                    // Обновляем путь к файлу
-                    pilgrimsData[idx].passport_image_path = result.path;
-
-                    // Обновляем распознанные данные (ВСЕ КРОМЕ имени и фамилии)
-                    if (result.data) {
-                        if (result.data.gender) {
-                            pilgrimsData[idx].gender = result.data.gender;
-                            console.log("✅ Пол обновлен:", result.data.gender);
-                        }
-                        if (result.data.date_of_birth) {
-                            pilgrimsData[idx].date_of_birth = result.data.date_of_birth;
-                            console.log("✅ Дата рождения обновлена:", result.data.date_of_birth);
-                        }
-                        if (result.data.passport_num) {
-                            pilgrimsData[idx].passport_num = result.data.passport_num;
-                            console.log("✅ Номер паспорта обновлен:", result.data.passport_num);
-                        }
-                        if (result.data.passport_expiry) {
-                            pilgrimsData[idx].passport_expiry = result.data.passport_expiry;
-                            console.log("✅ Срок действия обновлен:", result.data.passport_expiry);
-                        }
-                        if (result.data.iin) {
-                            pilgrimsData[idx].iin = result.data.iin;
-                            console.log("✅ ИИН обновлен:", result.data.iin);
-                        }
-                    }
-
-                    // Перерисовываем для отображения обновленных данных
-                    renderPilgrims();
-
-                    console.log("✅ Данные паломника обновлены из паспорта");
-                } catch (err) {
-                    alert("Ошибка загрузки файла: " + err);
-                    e.target.value = "";
-                    // Удаляем индикатор загрузки при ошибке
-                    const loadingInfo = e.target.nextElementSibling;
-                    if (loadingInfo && loadingInfo.classList.contains('file-info')) {
-                        loadingInfo.remove();
-                    }
-                }
-            });
-        });
     }
-
     function togglePassportData(idx) {
         const el = document.getElementById(`passport_${idx}`);
         el.classList.toggle('visible');
