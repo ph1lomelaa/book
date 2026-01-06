@@ -971,8 +971,22 @@
         window.scrollTo(0, 0);
     }
 
-    function setFiles(files) {
-        passportFiles = Array.from(files || []);
+    function fileSignature(file) {
+        return `${file.name}::${file.size}::${file.lastModified || 0}`;
+    }
+
+    function addFiles(files) {
+        const incoming = Array.from(files || []);
+        if (!incoming.length) return;
+
+        const existing = new Set(passportFiles.map(fileSignature));
+        for (const file of incoming) {
+            const sig = fileSignature(file);
+            if (existing.has(sig)) continue;
+            passportFiles.push(file);
+            existing.add(sig);
+        }
+
         renderFilesList();
         document.getElementById('start_processing_btn').disabled = passportFiles.length === 0 || processingInProgress;
     }
@@ -1253,7 +1267,10 @@
 
     if (chooseFilesBtn && filesInput) {
         chooseFilesBtn.addEventListener('click', () => filesInput.click());
-        filesInput.addEventListener('change', (e) => setFiles(e.target.files));
+        filesInput.addEventListener('change', (e) => {
+            addFiles(e.target.files);
+            e.target.value = '';
+        });
     }
 
     if (dropzone) {
@@ -1265,7 +1282,7 @@
         dropzone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropzone.classList.remove('dragover');
-            setFiles(e.dataTransfer.files);
+            addFiles(e.dataTransfer.files);
         });
     }
 
@@ -1310,7 +1327,7 @@
                 </div>
                 <div class="name-hint">Можно изменить имя/фамилию, если распознано неправильно</div>
                 <input type="tel" class="phone-input" data-idx="${idx}" placeholder="Номер телефона" value="${p.phone !== '-' ? p.phone : ''}">
-                <select class="gender-select" data-idx="${idx}" style="${((p.first_name && p.first_name !== '-') || (p.last_name && p.last_name !== '-')) && (!p.gender || p.gender === '-') ? '' : 'display:none;'}">
+                <select class="gender-select" data-idx="${idx}">
                     <option value="" ${(!p.gender || p.gender === '-') ? 'selected' : ''}>Пол (обязательно) — выберите</option>
                     <option value="M" ${p.gender === 'M' ? 'selected' : ''}>Мужской</option>
                     <option value="F" ${p.gender === 'F' ? 'selected' : ''}>Женский</option>
@@ -1346,12 +1363,8 @@
             data.name = displayName || '-';
 
             const genderSelect = document.querySelector(`.gender-select[data-idx="${idx}"]`);
-            const needsGender = ((data.first_name && data.first_name !== '-') || (data.last_name && data.last_name !== '-')) && (!data.gender || data.gender === '-');
-            if (genderSelect) {
-                genderSelect.style.display = needsGender ? '' : 'none';
-                if (needsGender && !genderSelect.value) {
-                    genderSelect.value = '';
-                }
+            if (genderSelect && (data.gender === 'M' || data.gender === 'F')) {
+                genderSelect.value = data.gender;
             }
         }
 
