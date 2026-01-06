@@ -554,6 +554,13 @@
             color: var(--accent-dark);
             white-space: nowrap;
         }
+
+        .help-text {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
     </style>
 </head>
 <body>
@@ -599,6 +606,9 @@
                 <button class="submit-btn" id="start_processing_btn" type="button" style="margin-top: 14px;" disabled>
                     Начать обработку
                 </button>
+                <div class="help-text">
+                    После загрузки паспортов нажмите «Начать обработку». Если у части паломников нет паспортов — их имя/фамилию вы сможете ввести в форме вручную (количество менять не нужно).
+                </div>
             </div>
         </div>
     </div>
@@ -1260,6 +1270,8 @@
             creationCount = readCount();
             if (!creationCount) return alert("Укажите количество паломников");
             creationMode = 'form';
+            fillTgBtn.style.display = 'none';
+            fillFormBtn.style.display = 'none';
             formPassportBlock.style.display = 'block';
             renderFilesList();
         });
@@ -1298,6 +1310,8 @@
         countInput.value = String(Math.min(30, countParam));
         creationCount = readCount();
         creationMode = 'form';
+        fillTgBtn.style.display = 'none';
+        fillFormBtn.style.display = 'none';
         formPassportBlock.style.display = 'block';
         renderFilesList();
     }
