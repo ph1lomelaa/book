@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📋 Списки по пакетам - Hickmet Premium</title>
+    <title>📋 История бронирований</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
+        
         :root {
             --bg-primary: #FAF8F5;
             --bg-secondary: #F5F1EB;
@@ -26,13 +26,13 @@
             --danger-bg: #FFEBEE;
             --danger-text: #C62828;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
@@ -41,176 +41,266 @@
             padding-bottom: 60px;
             min-height: 100vh;
         }
-
+        
         .header {
-            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
-            border-radius: 20px;
-            padding: 30px 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-medium);
             text-align: center;
-            color: white;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
         }
-
+        
         .header h1 {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
+            color: var(--accent-dark);
             margin-bottom: 5px;
         }
-
+        
         .header p {
             font-size: 14px;
-            opacity: 0.95;
+            color: var(--text-secondary);
         }
-
-        .step-indicator {
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
             text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-dark);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
             font-size: 13px;
+            color: var(--text-secondary);
             font-weight: 600;
-            color: var(--accent-brown);
-            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--accent-brown);
+        
+        .controls {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
         }
-
-        .spinner {
-            border: 3px solid var(--border-color);
-            border-top: 3px solid var(--accent-brown);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: var(--danger-bg);
-            color: var(--danger-text);
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
             margin-bottom: 12px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
             font-size: 16px;
-            font-weight: 600;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--accent-brown);
+            background-color: #FFFFFF;
+        }
+        
+        .search-btn {
+            padding: 12px 20px;
             background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
             color: white;
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            text-align: left;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(107, 93, 82, 0.2);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        
+        .filter-tab {
+            padding: 9px 16px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
+            color: white;
+            border-color: var(--accent-dark);
+        }
+        
+        .packages-filter {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .packages-filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-brown);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .packages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        
+        .package-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(107, 93, 82, 0.2);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(107, 93, 82, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
+            padding: 12px 16px;
+            background: var(--bg-secondary);
             border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .package-item:hover {
+            border-color: var(--accent-light);
+            transform: translateX(4px);
             box-shadow: var(--shadow-soft);
         }
-
-        .btn-secondary:hover {
-            border-color: var(--accent-light);
-        }
-
-        .btn-back {
-            background: var(--bg-secondary);
-            color: var(--accent-dark);
-            border: 2px solid var(--border-color);
-            margin-bottom: 20px;
-        }
-
-        .btn-phones {
+        
+        .package-item.active {
             background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
-            margin-top: 0;
-            margin-bottom: 20px;
+            border-color: var(--accent-dark);
+            color: white;
         }
-
-        .section-title {
-            font-size: 18px;
+        
+        .package-name {
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .package-count {
+            margin-left: 12px;
+            padding: 4px 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 700;
-            margin-bottom: 16px;
             color: var(--accent-dark);
         }
-
+        
+        #bookings-container {
+            margin-top: 10px;
+        }
+        
         .booking-card {
             background: var(--bg-card);
             border: 2px solid var(--border-color);
             border-radius: 16px;
             padding: 16px;
-            margin-bottom: 12px;
             box-shadow: var(--shadow-soft);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
-
-        .booking-card.cancelled {
-            border-color: var(--danger-bg);
-            background: #fff7f7;
+        
+        .booking-card + .booking-card {
+            margin-top: 12px;
         }
-
+        
         .booking-card:hover {
-            transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
             border-color: var(--accent-light);
+            transform: translateY(-2px);
         }
-
+        
+        .booking-card.cancelled {
+            opacity: 0.65;
+            border-color: var(--danger-text);
+        }
+        
         .booking-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
+            align-items: center;
             margin-bottom: 12px;
         }
-
-        .booking-guest {
+        
+        .booking-name {
             font-size: 18px;
             font-weight: 700;
             color: var(--accent-dark);
         }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
+        
+        .booking-status {
+            padding: 5px 10px;
+            border-radius: 8px;
             font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
-        .status-active {
+        
+        .status-new {
             background: var(--success-bg);
             color: var(--success-text);
         }
-
+        
         .status-cancelled {
             background: var(--danger-bg);
             color: var(--danger-text);
         }
-
+        
+        .booking-date {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        
         .booking-preview {
             display: grid;
             gap: 8px;
@@ -237,6 +327,24 @@
             margin-left: 4px;
         }
 
+        .passport-warning {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 2px solid var(--danger-text);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+            animation: pulse-warning 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
         .details-btn {
             width: 100%;
             padding: 12px;
@@ -248,6 +356,7 @@
             color: var(--accent-dark);
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-bottom: 12px;
         }
 
         .details-btn:hover {
@@ -263,9 +372,9 @@
 
         .booking-details-full {
             display: none;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 2px solid var(--border-color);
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .booking-details-full.show {
@@ -289,541 +398,918 @@
             letter-spacing: 0.5px;
         }
 
-        .manager-tag {
-            padding: 8px 12px;
+        .detail-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .detail-item {
             background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            display: block;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 4px;
+        }
+        
+        .booking-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 13px;
-            color: var(--accent-dark);
             font-weight: 600;
-        }
-
-        .phone-item {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-soft);
-            transition: all 0.3s ease;
-        }
-
-        .phone-item:hover {
-            border-color: var(--accent-light);
-            transform: translateY(-1px);
-        }
-
-        .phone-name {
-            font-weight: 600;
-            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
             color: var(--text-primary);
         }
-
-        .phone-number {
-            font-size: 14px;
-            color: var(--accent-brown);
-            font-weight: 600;
-            text-decoration: none;
+        
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%);
+            color: white;
+            border-color: var(--accent-dark);
         }
-
-        .hidden {
+        
+        .action-btn.danger {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border-color: var(--danger-text);
+        }
+        
+        .modal {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
         }
-
-        .no-data {
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 620px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(107, 93, 82, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        
+        .modal-actions .action-btn {
+            flex: unset;
+            min-width: 120px;
+        }
+        
+        .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-secondary);
         }
-
-        .no-data-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
+        
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 18px;
         }
-
-        .count-badge {
-            background: rgba(155, 132, 116, 0.15);
-            color: var(--accent-brown);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 700;
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-brown);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Hickmet Premium</h1>
-        <p>Списки по пакетам</p>
+
+<div class="header">
+    <h1>📋 История бронирований</h1>
+    <p id="manager-name">Загрузка...</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number" id="stat-total">0</div>
+        <div class="stat-label">Всего броней</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-number" id="stat-active">0</div>
+        <div class="stat-label">Активных</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" id="stat-cancelled">0</div>
+        <div class="stat-label">Отменено</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" id="stat-packages">0</div>
+        <div class="stat-label">Пакетов</div>
+    </div>
+</div>
 
-    <div id="stepIndicator" class="step-indicator"></div>
+<div class="controls">
+    <div class="search-box">
+        <input type="text" class="search-input" id="search-input" placeholder="Поиск по имени или паспорту...">
+        <button class="search-btn" onclick="applyFilters()">Найти</button>
+    </div>
+    
+    <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all" onclick="setStatusFilter('all')">Все</div>
+        <div class="filter-tab" data-filter="active" onclick="setStatusFilter('active')">Активные</div>
+        <div class="filter-tab" data-filter="cancelled" onclick="setStatusFilter('cancelled')">Отмененные</div>
+    </div>
+    
+    <div class="packages-filter">
+        <div class="packages-filter-label">Фильтр по пакетам:</div>
+        <div class="packages-list" id="packages-list"></div>
+    </div>
+    
+    <div id="selected-filter-info" class="selected-filter-info" style="display: none;">
+        <span id="selected-filter-text"></span>
+        <button class="search-btn" style="padding:8px 14px;" onclick="clearPackageFilter()">✕ Сбросить</button>
+    </div>
+</div>
 
-    <div id="loadingDiv" class="loading hidden">
+<div id="bookings-container">
+    <div class="loading">
         <div class="spinner"></div>
-        <p>Загрузка...</p>
+        <p>Загрузка истории...</p>
     </div>
+</div>
 
-    <div id="errorDiv" class="error-message hidden"></div>
+<div class="modal" id="detail-modal">
+    <div class="modal-content">
+        <div class="modal-header" id="modal-title">Детали бронирования</div>
 
-    <!-- Шаг 1: Выбор таблицы -->
-    <div id="tablesSection" class="hidden">
-        <div class="section-title">Выберите таблицу:</div>
-        <div id="tablesList"></div>
+        <div id="modal-body"></div>
+
+        <div class="modal-actions">
+            <button class="action-btn" onclick="closeModal()">Закрыть</button>
+            <button class="action-btn danger" id="cancel-btn" onclick="promptCancelSelected()">Отменить</button>
+            <button class="action-btn primary" id="reschedule-btn" onclick="rescheduleBooking()">Перенести</button>
+        </div>
     </div>
+</div>
 
-    <!-- Шаг 2: Выбор даты (листа) -->
-    <div id="datesSection" class="hidden">
-        <button class="btn btn-back" onclick="backToTables()">← Назад к таблицам</button>
-        <div class="section-title">Выберите дату:</div>
-        <div id="datesList"></div>
+<!-- Модалка редактирования -->
+<div class="modal" id="edit-modal">
+    <div class="modal-content">
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--accent-dark); margin-bottom: 12px;">✏️ Редактировать данные</h2>
+        <p style="margin: 0 0 16px; color: var(--text-secondary); font-size: 14px;">
+            Можно менять только телефон, сумму оплаты и комментарий. Остальные поля остаются без изменений.
+        </p>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600; color:var(--accent-brown);">📞 Телефон</label>
+            <input type="tel" id="edit-phone" class="search-input" style="width:100%;" placeholder="+7 777 123 45 67">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600; color:var(--accent-brown);">💰 Сумма оплаты</label>
+            <input type="text" id="edit-amount-paid" class="search-input" style="width:100%;" placeholder="1500">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600; color:var(--accent-brown);">💬 Комментарий</label>
+            <textarea id="edit-comment" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; min-height: 90px; background: var(--bg-secondary);"></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button class="action-btn" onclick="closeEditModal()">Отмена</button>
+            <button class="action-btn primary" onclick="saveEditedData()">💾 Сохранить</button>
+        </div>
     </div>
+</div>
 
-    <!-- Шаг 3: Выбор пакета -->
-    <div id="packagesSection" class="hidden">
-        <button class="btn btn-back" onclick="backToDates()">← Назад к датам</button>
-        <div class="section-title">Выберите пакет:</div>
-        <div id="packagesList"></div>
-    </div>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    <!-- Шаг 4: Список броней -->
-    <div id="bookingsSection" class="hidden">
-        <button class="btn btn-back" onclick="backToPackages()">← Назад к пакетам</button>
-        <div class="section-title" id="bookingsTitle">Список паломников:</div>
-        <button class="btn btn-phones" onclick="showPhones()">📞 Показать номера телефонов</button>
-        <div id="bookingsList"></div>
-    </div>
+    const API_URL = window.BULL_API_URL;
+    const urlManagerId = new URLSearchParams(window.location.search).get('managerId');
 
-    <!-- Шаг 5: Список телефонов -->
-    <div id="phonesSection" class="hidden">
-        <button class="btn btn-back" onclick="backToBookings()">← Назад к списку</button>
-        <div class="section-title">Номера телефонов:</div>
-        <div id="phonesList"></div>
-    </div>
+    let allBookings = [];
+    let filteredBookings = [];
+    let currentStatusFilter = 'all';
+    let currentPackageFilter = null;
+    let selectedBooking = null;
+    let packagesData = {};
 
-    <script>
-        const API_URL = window.BULL_API_URL;
-        const tg = window.Telegram.WebApp;
+    const mapStatus = (value) => {
+        const normalized = (value || '').toLowerCase().trim();
+        if (!normalized) return 'new';
+        if (normalized.includes('cancel')) return 'cancelled';
+        if (normalized.includes('resched') || normalized.includes('перенос')) return 'rescheduled';
+        return normalized;
+    };
+    const safeValue = (value, fallback = '-') => (value && value !== '-' ? value : fallback);
+    const formatDateTime = (value) => {
+        if (!value) return '-';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        const dateStr = date.toLocaleDateString('ru-RU');
+        const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        return `${dateStr} ${timeStr}`;
+    };
+    const requireCancelConfirm = (booking) => {
+        const answer = prompt(`Чтобы отменить бронь для ${booking.guest_last_name || ''} ${booking.guest_first_name || ''}, введите YES`);
+        return answer && answer.trim().toLowerCase() === 'yes';
+    };
 
-        tg.ready();
-        tg.expand();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const autoPhones = urlParams.get('mode') === 'phones' || window.location.hash.includes('phones');
-
-        const safeValue = (value, fallback = '-') => {
-            if (value === null || value === undefined) return fallback;
-            const str = String(value).trim();
-            return str === '' || str === '-' ? fallback : str;
-        };
-
-        const formatDateTime = (value) => {
-            if (!value) return '-';
-            const date = new Date(value);
-            if (Number.isNaN(date.getTime())) return value;
-            const dateStr = date.toLocaleDateString('ru-RU');
-            const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-            return `${dateStr} ${timeStr}`;
-        };
-
-        let state = {
-            tables: {},
-            selectedTableId: null,
-            selectedTableName: null,
-            sheets: [],
-            selectedSheetName: null,
-            packages: [],
-            selectedPackage: null,
-            bookings: [],
-            phones: [],
-            autoPhones: autoPhones
-        };
-
-        init();
-
-        async function init() {
-            updateStep(state.autoPhones ? 'Сбор номеров' : 'Шаг 1/4: Выбор таблицы');
-            await loadTables();
+    async function init() {
+        const user = tg.initDataUnsafe?.user;
+        if (urlManagerId) {
+            document.getElementById('manager-name').textContent = `Менеджер: ${urlManagerId}`;
+            await loadBookings(urlManagerId);
+        } else if (user) {
+            document.getElementById('manager-name').textContent = `Менеджер: ${user.first_name}`;
+            await loadBookings(user.id);
+        } else {
+            document.getElementById('manager-name').textContent = 'Демо режим';
+            await loadBookings(0);
         }
 
-        function updateStep(text) {
-            document.getElementById('stepIndicator').textContent = text;
-        }
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+    }
 
-        function showSection(sectionId) {
-            ['tablesSection', 'datesSection', 'packagesSection', 'bookingsSection', 'phonesSection'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
+    async function loadBookings(managerId) {
+        try {
+            const response = await fetch(`${API_URL}/api/history/${managerId}`, {
+                headers: {"ngrok-skip-browser-warning":"1"}
             });
-            document.getElementById(sectionId).classList.remove('hidden');
+            
+            const data = await response.json();
+            
+            if (data.ok) {
+                allBookings = data.bookings || [];
+                processPackagesData();
+                updateStats();
+                renderPackagesList();
+                applyFilters();
+            } else {
+                showEmpty();
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки:', e);
+            showError();
         }
+    }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorDiv');
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+    function processPackagesData() {
+        packagesData = {};
+        
+        allBookings.forEach(booking => {
+            const status = mapStatus(booking.status);
+            const pkgName = booking.package_name || 'Без пакета';
+            if (!packagesData[pkgName]) {
+                packagesData[pkgName] = {
+                    name: pkgName,
+                    total: 0,
+                    active: 0,
+                    cancelled: 0
+                };
+            }
+            
+            packagesData[pkgName].total++;
+            if (status === 'cancelled') {
+                packagesData[pkgName].cancelled++;
+            } else {
+                packagesData[pkgName].active++;
+            }
+        });
+    }
+
+    function updateStats() {
+        const total = allBookings.length;
+        const active = allBookings.filter(b => mapStatus(b.status) !== 'cancelled').length;
+        const cancelled = allBookings.filter(b => mapStatus(b.status) === 'cancelled').length;
+        const packages = Object.keys(packagesData).length;
+        
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-active').textContent = active;
+        document.getElementById('stat-cancelled').textContent = cancelled;
+        document.getElementById('stat-packages').textContent = packages;
+    }
+
+    function renderPackagesList() {
+        const container = document.getElementById('packages-list');
+        
+        const sortedPackages = Object.values(packagesData).sort((a, b) => b.total - a.total);
+        
+        container.innerHTML = sortedPackages.map(pkg => {
+            const countText = currentStatusFilter === 'all' 
+                ? pkg.total 
+                : currentStatusFilter === 'active' 
+                    ? pkg.active 
+                    : pkg.cancelled;
+            
+            return `
+                <div class="package-item" onclick="setPackageFilter('${pkg.name.replace(/'/g, "\\'")}', this)">
+                    <span class="package-name" title="${pkg.name}">
+                        ${pkg.name.length > 35 ? pkg.name.substring(0, 35) + '...' : pkg.name}
+                    </span>
+                    <span class="package-count">${countText}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function setStatusFilter(filter) {
+        currentStatusFilter = filter;
+        
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+        
+        renderPackagesList();
+        applyFilters();
+    }
+
+    function setPackageFilter(packageName, element) {
+        currentPackageFilter = packageName;
+        
+        document.querySelectorAll('.package-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        if (element) {
+            element.classList.add('active');
         }
+        
+        const info = document.getElementById('selected-filter-info');
+        const text = document.getElementById('selected-filter-text');
+        
+        const pkg = packagesData[packageName];
+        const count = currentStatusFilter === 'all' 
+            ? pkg.total 
+            : currentStatusFilter === 'active' 
+                ? pkg.active 
+                : pkg.cancelled;
+        
+        text.textContent = `${packageName} (${count} паломников)`;
+        info.style.display = 'flex';
+        
+        applyFilters();
+    }
 
-        function showLoading() {
-            document.getElementById('loadingDiv').classList.remove('hidden');
+    function clearPackageFilter() {
+        currentPackageFilter = null;
+        
+        document.querySelectorAll('.package-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        document.getElementById('selected-filter-info').style.display = 'none';
+        
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const searchText = document.getElementById('search-input').value.trim().toLowerCase();
+        
+        filteredBookings = allBookings.filter(booking => {
+            const status = mapStatus(booking.status);
+            if (currentStatusFilter === 'active' && status === 'cancelled') return false;
+            if (currentStatusFilter === 'cancelled' && status !== 'cancelled') return false;
+            if (currentPackageFilter && booking.package_name !== currentPackageFilter) return false;
+            
+            if (searchText) {
+                const fullName = `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.toLowerCase();
+                const passport = (booking.passport_num || '').toLowerCase();
+                if (!fullName.includes(searchText) && !passport.includes(searchText)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        renderBookings();
+    }
+
+    function renderBookings() {
+        const container = document.getElementById('bookings-container');
+        
+        if (filteredBookings.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <h3>Бронирования не найдены</h3>
+                    <p>Попробуйте изменить фильтры или поисковый запрос</p>
+                </div>
+            `;
+            return;
         }
+        
+        container.innerHTML = `
+            <div class="bookings-list">
+                ${filteredBookings.map(booking => renderBookingCard(booking)).join('')}
+            </div>
+        `;
+    }
 
-        function hideLoading() {
-            document.getElementById('loadingDiv').classList.add('hidden');
+    function renderBookingCard(booking) {
+        const status = mapStatus(booking.status);
+        const cancelled = status === 'cancelled';
+        const cardClass = cancelled ? 'booking-card cancelled' : 'booking-card';
+        const statusClass = cancelled ? 'booking-status status-cancelled' : 'booking-status status-new';
+        const statusText = cancelled ? 'Отменено' : 'Активна';
+
+        const guestName = safeValue(`${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`.trim(), 'Без имени');
+        const packageName = safeValue(booking.package_name);
+        const sheetName = safeValue(booking.sheet_name);
+        const roomType = safeValue(booking.room_type || booking.placement_type);
+        const phone = safeValue(booking.client_phone);
+        const price = safeValue(booking.price);
+        const priceLabel = price === '-' ? '-' : `${price} тг`;
+        const amountPaid = safeValue(booking.amount_paid);
+        const createdLabel = formatDateTime(booking.created_at);
+        const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
+        const managerName = safeValue(booking.manager_name_text || booking.manager_name);
+        const passportImage = booking.passport_image_path;
+        const groupMembers = Array.isArray(booking.group_members) ? booking.group_members : [];
+        const groupLabel = groupMembers.length > 1 ? groupMembers.join(', ') : null;
+
+        // Additional details
+        const passportNum = safeValue(booking.passport_num);
+        const passportExpiry = safeValue(booking.passport_expiry);
+        const iin = safeValue(booking.guest_iin);
+        const dateOfBirth = safeValue(booking.date_of_birth);
+        const gender = booking.gender === 'F' ? 'Женский' : 'Мужской';
+        const mealType = safeValue(booking.meal_type);
+        const visaStatus = safeValue(booking.visa_status);
+        const avia = safeValue(booking.avia);
+        const train = safeValue(booking.train);
+        const departureCity = safeValue(booking.departure_city);
+        const region = safeValue(booking.region);
+        const source = safeValue(booking.source);
+        const passportWarning = booking.passport_warning;  // 🔥 Предупреждение о паспорте
+
+        const cardIndex = filteredBookings.indexOf(booking);
+
+        return `
+            <div class="${cardClass}">
+                <div class="booking-header">
+                    <div class="booking-name">👤 ${guestName}</div>
+                    <div class="${statusClass}">${statusText}</div>
+                </div>
+
+                ${passportImage ? `
+                    <img
+                        src="${API_URL}/api/care/passport-photo/${booking.id}?t=${new Date().getTime()}"
+                        alt="Паспорт"
+                        class="passport-image"
+                        onerror="this.style.display='none'"
+                    >
+                ` : ''}
+
+                ${passportWarning ? `
+                    <div class="passport-warning">
+                        ${passportWarning}
+                    </div>
+                ` : ''}
+
+                <div class="booking-preview">
+                    <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
+                    <div class="booking-detail">Пакет: <strong>${packageName}</strong></div>
+                    <div class="booking-detail">Дата: <strong>${sheetName}</strong></div>
+                    <div class="booking-detail">Комната: <strong>${roomType}</strong></div>
+                    ${groupLabel ? `<div class="booking-detail">Группа: <strong>${groupLabel}</strong></div>` : ''}
+                </div>
+
+                <button class="details-btn" onclick="toggleDetails(${cardIndex})">
+                    📋 Подробнее
+                </button>
+
+                <div class="booking-details-full" id="details-${cardIndex}">
+                    ${groupLabel ? `
+                    <div class="details-section">
+                        <div class="details-section-title">Группа</div>
+                        <div class="booking-detail">Состав: <strong>${groupLabel}</strong></div>
+                    </div>
+                    ` : ''}
+
+                    <div class="details-section">
+                        <div class="details-section-title">Паспортные данные</div>
+                        <div class="booking-detail">Пол: <strong>${gender}</strong></div>
+                        <div class="booking-detail">Дата рождения: <strong>${dateOfBirth}</strong></div>
+                        <div class="booking-detail">Номер паспорта: <strong>${passportNum}</strong></div>
+                        <div class="booking-detail">Срок действия: <strong>${passportExpiry}</strong></div>
+                        <div class="booking-detail">ИИН: <strong>${iin}</strong></div>
+                    </div>
+
+                    <div class="details-section">
+                        <div class="details-section-title">Детали тура</div>
+                        <div class="booking-detail">Питание: <strong>${mealType}</strong></div>
+                        <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
+                        <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
+                        ${visaStatus !== '-' ? `<div class="booking-detail">Виза: <strong>${visaStatus}</strong></div>` : ''}
+                        ${avia !== '-' ? `<div class="booking-detail">Авиа: <strong>${avia}</strong></div>` : ''}
+                        ${train !== '-' ? `<div class="booking-detail">Поезд: <strong>${train}</strong></div>` : ''}
+                        ${region !== '-' ? `<div class="booking-detail">Регион: <strong>${region}</strong></div>` : ''}
+                        ${departureCity !== '-' ? `<div class="booking-detail">Город вылета: <strong>${departureCity}</strong></div>` : ''}
+                        ${source !== '-' ? `<div class="booking-detail">Источник: <strong>${source}</strong></div>` : ''}
+                    </div>
+
+                    <div class="details-section">
+                        <div class="details-section-title">Комментарий</div>
+                        <div class="booking-detail">${comment === '-' ? '—' : comment}</div>
+                    </div>
+
+                    <div class="details-section">
+                        <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
+                        <div class="booking-detail">Создано: <strong>${createdLabel}</strong></div>
+                    </div>
+                </div>
+
+                ${!cancelled ? `
+                <div class="booking-actions">
+                    <button class="action-btn" onclick="startEditData(${booking.id})">✏️ Изменить</button>
+                    <button class="action-btn" onclick="startUploadPassport(${booking.id})">📄 Загрузить паспорт</button>
+                    <button class="action-btn" onclick="startReschedule(${booking.id})">Перенести</button>
+                    <button class="action-btn danger" onclick="confirmCancel(${booking.id})">Отменить</button>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    function toggleDetails(index) {
+        const detailsDiv = document.getElementById(`details-${index}`);
+        const btn = event.target;
+
+        if (detailsDiv.classList.contains('show')) {
+            detailsDiv.classList.remove('show');
+            btn.classList.remove('active');
+            btn.innerHTML = '📋 Подробнее';
+        } else {
+            detailsDiv.classList.add('show');
+            btn.classList.add('active');
+            btn.innerHTML = '🔼 Скрыть';
         }
+    }
 
-        async function loadTables() {
-            showLoading();
+    function showDetails(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+
+        selectedBooking = booking;
+        
+        document.getElementById('modal-title').textContent =
+            `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`;
+        
+        document.getElementById('modal-body').innerHTML = `
+            <div class="modal-section">
+                <h3>Персональные данные</h3>
+                <div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">ФИО</span><span class="detail-value">${booking.guest_last_name || ''} ${booking.guest_first_name || ''}</span></div>
+                    <div class="detail-item"><span class="detail-label">Пол</span><span class="detail-value">${booking.gender === 'F' ? 'Женский' : 'Мужской'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Дата рождения</span><span class="detail-value">${booking.date_of_birth || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Телефон</span><span class="detail-value">${booking.client_phone || '-'}</span></div>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h3>Документы</h3>
+                <div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">Паспорт</span><span class="detail-value">${booking.passport_num || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Срок действия</span><span class="detail-value">${booking.passport_expiry || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">ИИН</span><span class="detail-value">${booking.guest_iin || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Виза</span><span class="detail-value">${booking.visa_status || '-'}</span></div>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h3>Тур</h3>
+                <div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">Пакет</span><span class="detail-value">${booking.package_name || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Дата</span><span class="detail-value">${booking.sheet_name || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Город вылета</span><span class="detail-value">${booking.departure_city || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Авиа</span><span class="detail-value">${booking.avia || '-'}</span></div>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h3>Размещение</h3>
+                <div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">Тип номера</span><span class="detail-value">${booking.room_type || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Питание</span><span class="detail-value">${booking.meal_type || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Строка листа</span><span class="detail-value">${booking.sheet_row_number || 'Не указано'}</span></div>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h3>Финансы и доп.инфо</h3>
+                <div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">Сумма</span><span class="detail-value">${booking.price || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Оплачено</span><span class="detail-value">${booking.amount_paid || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Курс</span><span class="detail-value">${booking.exchange_rate || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Скидка</span><span class="detail-value">${booking.discount || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Менеджер</span><span class="detail-value">${booking.manager_name_text || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Источник</span><span class="detail-value">${booking.source || '-'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Регион</span><span class="detail-value">${booking.region || '-'}</span></div>
+                    ${booking.comment && booking.comment !== '-' ? `<div class="detail-item"><span class="detail-label">Комментарий</span><span class="detail-value">${booking.comment}</span></div>` : ''}
+                </div>
+            </div>
+        `;
+        
+        const status = mapStatus(booking.status);
+        document.getElementById('cancel-btn').style.display = status === 'cancelled' ? 'none' : 'inline-flex';
+        document.getElementById('reschedule-btn').style.display = status === 'cancelled' ? 'none' : 'inline-flex';
+        
+        document.getElementById('detail-modal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('detail-modal').classList.remove('active');
+        selectedBooking = null;
+    }
+
+    async function confirmCancel(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+        
+        if (!requireCancelConfirm(booking)) return;
+        await cancelBooking(bookingId);
+    }
+
+    async function promptCancelSelected() {
+        if (!selectedBooking) return;
+        if (!requireCancelConfirm(selectedBooking)) return;
+        await cancelBooking(selectedBooking.id);
+    }
+
+    async function cancelBooking(bookingId) {
+        const targetId = bookingId || selectedBooking?.id;
+        if (!targetId) return;
+        try {
+            const response = await fetch(`${API_URL}/api/bookings/${targetId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "1"
+                }
+            });
+            const data = await response.json();
+            if (data.ok) {
+                alert('✅ Бронь отменена');
+                closeModal();
+                const user = tg.initDataUnsafe?.user;
+                await loadBookings(urlManagerId || user?.id || 0);
+            } else {
+                alert('❌ Ошибка отмены: ' + (data.error || ''));
+            }
+        } catch (e) {
+            alert('❌ Ошибка сети: ' + e);
+        }
+    }
+
+    function startReschedule(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+
+        const pilgrimData = {
+            first_name: booking.guest_first_name,
+            last_name: booking.guest_last_name,
+            phone: booking.client_phone,
+            passport_num: booking.passport_num,
+            date_of_birth: booking.date_of_birth,
+            gender: booking.gender,
+            passport_expiry: booking.passport_expiry,
+            iin: booking.guest_iin
+        };
+
+        localStorage.setItem('reschedule_booking_id', booking.id);
+        localStorage.setItem('reschedule_data', JSON.stringify(pilgrimData));
+        localStorage.setItem('is_reschedule', 'true');
+
+        // Используем существующую форму бронирования
+        window.location.href = 'index.html';
+    }
+
+    function rescheduleBooking() {
+        if (selectedBooking) {
+            startReschedule(selectedBooking.id);
+        }
+    }
+
+    async function startUploadPassport(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.jpg,.jpeg,.png,.pdf';
+
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // overlay loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = '<div class="spinner"></div><p>⏳ Загрузка и распознавание паспорта...</p>';
+            document.body.appendChild(loadingDiv);
+
             try {
-                const response = await fetch(`${API_URL}/api/care/tables`, {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const uploadRes = await fetch(`${API_URL}/api/passports/upload`, {
+                    method: "POST",
+                    body: formData,
                     headers: {"ngrok-skip-browser-warning": "1"}
                 });
-                const data = await response.json();
-                hideLoading();
-
-                if (!data.ok || !data.tables) {
-                    showError(data.error || 'Не удалось загрузить таблицы');
-                    return;
+                const uploadJson = await uploadRes.json();
+                if (!uploadRes.ok || !uploadJson.ok) {
+                    throw new Error(uploadJson.error || `Ошибка загрузки: ${uploadRes.status}`);
                 }
 
-                state.tables = data.tables;
-                displayTables();
-            } catch (error) {
-                console.error('Error loading tables:', error);
-                hideLoading();
-                showError('Ошибка подключения к серверу');
+                const passportPath = uploadJson.path;
+                const parsedData = uploadJson.parsed_data || uploadJson.data || {};
+
+                // Только сохраняем файл паспорта и тип документа, остальные данные брони НЕ трогаем
+                const patchBody = {
+                    pilgrims: [{
+                        passport_image_path: passportPath,
+                        document_type: parsedData.document_type || "passport"
+                    }]
+                };
+
+                const updateRes = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "1"
+                    },
+                    body: JSON.stringify(patchBody)
+                });
+                const updateJson = await updateRes.json();
+                if (!updateRes.ok || !updateJson.ok) {
+                    throw new Error(updateJson.error || 'Ошибка обновления данных');
+                }
+
+                alert('✅ Фото паспорта успешно загружено.');
+
+                const user = tg.initDataUnsafe?.user;
+                await loadBookings(urlManagerId || user?.id || 0);
+            } catch (err) {
+                alert('❌ Ошибка загрузки: ' + err.message);
+            } finally {
+                document.body.removeChild(loadingDiv);
             }
-        }
+        };
 
-        function displayTables() {
-            const container = document.getElementById('tablesList');
-            container.innerHTML = '';
+        input.click();
+    }
 
-            Object.entries(state.tables).forEach(([name, id]) => {
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-secondary';
-                btn.innerHTML = `<span>${name}</span><span>→</span>`;
-                btn.onclick = () => selectTable(name, id);
-                container.appendChild(btn);
+    function showEmpty() {
+        document.getElementById('bookings-container').innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <h3>История пуста</h3>
+                <p>У вас пока нет завершенных бронирований</p>
+            </div>
+        `;
+    }
+
+    function showError() {
+        document.getElementById('bookings-container').innerHTML = `
+            <div class="empty-state">
+                <div class="icon">⚠️</div>
+                <h3>Ошибка загрузки</h3>
+                <p>Не удалось загрузить историю бронирований</p>
+            </div>
+        `;
+    }
+
+    let editingBookingId = null;
+    let editingBooking = null;
+
+    function startEditData(bookingId) {
+        const booking = allBookings.find(b => b.id === bookingId);
+        if (!booking) return;
+
+        editingBookingId = bookingId;
+        editingBooking = booking;
+
+        // Заполняем только существующие поля в модалке
+        document.getElementById('edit-phone').value = booking.client_phone || '';
+        document.getElementById('edit-amount-paid').value = booking.amount_paid || '';
+        document.getElementById('edit-comment').value = booking.comment || '';
+
+        document.getElementById('edit-modal').classList.add('active');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.remove('active');
+        editingBookingId = null;
+        editingBooking = null;
+    }
+
+    async function saveEditedData() {
+        if (!editingBookingId || !editingBooking) return;
+
+        // Отправляем только разрешенные поля (телефон, сумма оплаты, комментарий)
+        const body = {
+            pilgrims: [{
+                phone: document.getElementById('edit-phone').value.trim()
+            }],
+            amount_paid: document.getElementById('edit-amount-paid').value.trim(),
+            comment: document.getElementById('edit-comment').value.trim()
+        };
+
+        try {
+            const res = await fetch(`${API_URL}/api/bookings/${editingBookingId}`, {
+                method: 'PATCH',
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "1"
+                },
+                body: JSON.stringify(body)
             });
-
-            showSection('tablesSection');
-        }
-
-        async function selectTable(tableName, tableId) {
-            state.selectedTableName = tableName;
-            state.selectedTableId = tableId;
-            updateStep('Шаг 2/4: Выбор даты');
-            await loadSheets();
-        }
-
-        async function loadSheets() {
-            showLoading();
-            try {
-                const response = await fetch(`${API_URL}/api/care/sheets?table_id=${encodeURIComponent(state.selectedTableId)}`, {
-                    headers: {"ngrok-skip-browser-warning": "1"}
-                });
-                const data = await response.json();
-                hideLoading();
-
-                if (!data.ok || !data.sheets) {
-                    showError(data.error || 'Не удалось загрузить даты');
-                    return;
-                }
-
-                state.sheets = data.sheets;
-                displaySheets();
-            } catch (error) {
-                console.error('Error loading sheets:', error);
-                hideLoading();
-                showError('Ошибка загрузки дат');
-            }
-        }
-
-        function displaySheets() {
-            const container = document.getElementById('datesList');
-            container.innerHTML = '';
-
-            if (state.sheets.length === 0) {
-                container.innerHTML = '<div class="no-data"><div class="no-data-icon">📅</div><p>Нет доступных дат</p></div>';
-            } else {
-                state.sheets.forEach(sheetName => {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn btn-secondary';
-                    btn.innerHTML = `<span>${sheetName}</span><span>→</span>`;
-                    btn.onclick = () => selectSheet(sheetName);
-                    container.appendChild(btn);
-                });
-            }
-
-            showSection('datesSection');
-        }
-
-        async function selectSheet(sheetName) {
-            state.selectedSheetName = sheetName;
-            updateStep('Шаг 3/4: Выбор пакета');
-            await loadPackages();
-        }
-
-        async function loadPackages() {
-            showLoading();
-            try {
-                const response = await fetch(
-                    `${API_URL}/api/care/packages-by-date?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}`,
-                    {headers: {"ngrok-skip-browser-warning": "1"}}
-                );
-                const data = await response.json();
-                hideLoading();
-
-                if (!data.ok) {
-                    showError(data.error || 'Не удалось загрузить пакеты');
-                    return;
-                }
-
-                state.packages = data.packages || [];
-                displayPackages();
-            } catch (error) {
-                console.error('Error loading packages:', error);
-                hideLoading();
-                showError('Ошибка загрузки пакетов');
-            }
-        }
-
-        function displayPackages() {
-            const container = document.getElementById('packagesList');
-            container.innerHTML = '';
-
-            if (state.packages.length === 0) {
-                container.innerHTML = '<div class="no-data"><div class="no-data-icon">📦</div><p>Нет пакетов на эту дату</p></div>';
-            } else {
-                state.packages.forEach(packageName => {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn btn-secondary';
-                    btn.innerHTML = `<span>${packageName}</span><span>→</span>`;
-                    btn.onclick = () => selectPackage(packageName);
-                    container.appendChild(btn);
-                });
-            }
-
-            showSection('packagesSection');
-        }
-
-        async function selectPackage(packageName) {
-            state.selectedPackage = packageName;
-            updateStep('Шаг 4/4: Список паломников');
-            await loadBookings();
-        }
-
-        async function loadBookings() {
-            showLoading();
-            try {
-                const response = await fetch(
-                    `${API_URL}/api/care/bookings-in-package?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}&package_name=${encodeURIComponent(state.selectedPackage)}`,
-                    {headers: {"ngrok-skip-browser-warning": "1"}}
-                );
-                const data = await response.json();
-                hideLoading();
-
-                if (!data.ok) {
-                    showError(data.error || 'Не удалось загрузить список');
-                    return;
-                }
-
-                state.bookings = data.bookings || [];
-                displayBookings();
-            } catch (error) {
-                console.error('Error loading bookings:', error);
-                hideLoading();
-                showError('Ошибка загрузки списка');
-            }
-        }
-
-        function displayBookings() {
-            const container = document.getElementById('bookingsList');
-            const title = document.getElementById('bookingsTitle');
-
-            title.innerHTML = `Список паломников: <span class="count-badge">${state.bookings.length}</span>`;
-            container.innerHTML = '';
-
-            if (state.bookings.length === 0) {
-                container.innerHTML = '<div class="no-data"><div class="no-data-icon">😔</div><p>Нет броней в этом пакете</p></div>';
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                alert('❌ Ошибка сохранения: ' + (json.error || res.status));
                 return;
             }
-
-            state.bookings.forEach((booking, index) => {
-                const status = booking.status || 'new';
-                const statusClass = status === 'cancelled' ? 'status-cancelled' : 'status-active';
-                const statusText = status === 'cancelled' ? 'Отменена' : 'Активная';
-
-                const guestName = `${index + 1}. ${safeValue(booking.last_name)} ${safeValue(booking.first_name)}`.trim();
-                const phone = safeValue(booking.phone);
-                const packageName = safeValue(booking.package_name);
-                const sheetName = safeValue(booking.sheet_name);
-                const roomType = safeValue(booking.room_type);
-                const mealType = safeValue(booking.meal_type);
-                const priceLabel = safeValue(booking.price);
-                const amountPaid = safeValue(booking.amount_paid);
-                const visaStatus = safeValue(booking.visa_status);
-                const avia = safeValue(booking.avia);
-                const train = safeValue(booking.train);
-                const region = safeValue(booking.region);
-                const departureCity = safeValue(booking.departure_city);
-                const source = safeValue(booking.source);
-                const comment = booking.comment && booking.comment.trim() !== '' ? booking.comment : '-';
-                const managerName = safeValue(booking.manager_name);
-                const createdLabel = formatDateTime(booking.created_at);
-                const sheetRow = booking.sheet_row_number != null ? booking.sheet_row_number : '-';
-                const passportImage = booking.passport_image_path;
-
-                const card = document.createElement('div');
-                card.className = status === 'cancelled' ? 'booking-card cancelled' : 'booking-card';
-
-                let html = `
-                    <div class="booking-header">
-                        <div class="booking-guest">${guestName}</div>
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                    </div>
-                    ${passportImage ? `
-                        <img
-                            src="${API_URL}/api/care/passport-photo/${booking.id}"
-                            alt="Паспорт"
-                            class="passport-image"
-                            onerror="this.style.display='none'"
-                        >
-                    ` : ''}
-                    <div class="booking-preview">
-                        <div class="booking-detail">📞 Телефон: <strong>${phone}</strong></div>
-                        <div class="booking-detail">📦 Пакет: <strong>${packageName}</strong></div>
-                        <div class="booking-detail">📅 Дата: <strong>${sheetName}</strong></div>
-                        <div class="booking-detail">🏠 Комната: <strong>${roomType}</strong></div>
-                        <div class="booking-detail">📄 Строка листа: <strong>${sheetRow}</strong></div>
-                    </div>
-                    <button class="details-btn" onclick="toggleDetails(${index})">📋 Подробнее</button>
-                    <div class="booking-details-full" id="details-${index}">
-                        <div class="details-section">
-                            <div class="details-section-title">Детали тура</div>
-                            <div class="booking-detail">Питание: <strong>${mealType}</strong></div>
-                            <div class="booking-detail">Регион: <strong>${region}</strong></div>
-                            <div class="booking-detail">Город вылета: <strong>${departureCity}</strong></div>
-                            <div class="booking-detail">Источник: <strong>${source}</strong></div>
-                            <div class="booking-detail">Виза: <strong>${visaStatus}</strong></div>
-                            ${avia !== '-' ? `<div class="booking-detail">Авиа: <strong>${avia}</strong></div>` : ''}
-                            ${train !== '-' ? `<div class="booking-detail">Поезд: <strong>${train}</strong></div>` : ''}
-                            <div class="booking-detail">Менеджер: <strong>${managerName}</strong></div>
-                        </div>
-                        <div class="details-section">
-                            <div class="details-section-title">Финансы</div>
-                            <div class="booking-detail">Цена: <strong>${priceLabel}</strong></div>
-                            <div class="booking-detail">Оплачено: <strong>${amountPaid}</strong></div>
-                        </div>
-                        <div class="details-section">
-                            <div class="details-section-title">Комментарий</div>
-                            <div class="booking-detail">${comment === '-' ? '—' : comment}</div>
-                        </div>
-                        <div class="details-section">
-                            <div class="details-section-title">Документы и время</div>
-                            <div class="booking-detail">Дата создания: <strong>${createdLabel}</strong></div>
-                            <div class="booking-detail">Статус: <strong>${statusText}</strong></div>
-                        </div>
-                    </div>
-                `;
-
-                card.innerHTML = html;
-                container.appendChild(card);
-            });
-
-            showSection('bookingsSection');
-            if (state.autoPhones) {
-                state.autoPhones = false; // чтобы не зациклиться при возвратах
-                showPhones();
-            }
+            alert('✅ Изменения сохранены');
+            closeEditModal();
+            const user = tg.initDataUnsafe?.user;
+            await loadBookings(urlManagerId || user?.id || 0);
+        } catch (e) {
+            alert('❌ Ошибка сети: ' + e);
         }
+    }
 
-        function toggleDetails(index) {
-            const detailsDiv = document.getElementById(`details-${index}`);
-            const btn = event.target;
-
-            if (detailsDiv.classList.contains('show')) {
-                detailsDiv.classList.remove('show');
-                btn.classList.remove('active');
-                btn.innerHTML = '📋 Подробнее';
-            } else {
-                detailsDiv.classList.add('show');
-                btn.classList.add('active');
-                btn.innerHTML = '🔼 Скрыть';
-            }
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
         }
-
-        async function showPhones() {
-            updateStep('Номера телефонов');
-            showLoading();
-
-            try {
-                const response = await fetch(
-                    `${API_URL}/api/care/phones-by-package?table_id=${encodeURIComponent(state.selectedTableId)}&sheet_name=${encodeURIComponent(state.selectedSheetName)}&package_name=${encodeURIComponent(state.selectedPackage)}`,
-                    {headers: {"ngrok-skip-browser-warning": "1"}}
-                );
-                const data = await response.json();
-                hideLoading();
-
-                if (!data.ok) {
-                    showError(data.error || 'Не удалось загрузить телефоны');
-                    return;
-                }
-
-                state.phones = data.phones || [];
-                displayPhones();
-            } catch (error) {
-                console.error('Error loading phones:', error);
-                hideLoading();
-                showError('Ошибка загрузки телефонов');
-            }
+    });
+    document.getElementById('edit-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditModal();
         }
+    });
 
-        function displayPhones() {
-            const container = document.getElementById('phonesList');
-            container.innerHTML = '';
+    init();
+</script>
 
-            if (state.phones.length === 0) {
-                container.innerHTML = '<div class="no-data"><div class="no-data-icon">📞</div><p>Нет номеров телефонов</p></div>';
-            } else {
-                state.phones.forEach(item => {
-                    const phoneItem = document.createElement('div');
-                    phoneItem.className = 'phone-item';
-                    phoneItem.innerHTML = `
-                        <span class="phone-name">${item.name}</span>
-                        <a href="tel:${item.phone}" class="phone-number">${item.phone}</a>
-                    `;
-                    container.appendChild(phoneItem);
-                });
-            }
-
-            showSection('phonesSection');
-        }
-
-        function backToTables() {
-            updateStep('Шаг 1/4: Выбор таблицы');
-            displayTables();
-        }
-
-        function backToDates() {
-            updateStep('Шаг 2/4: Выбор даты');
-            displaySheets();
-        }
-
-        function backToPackages() {
-            updateStep('Шаг 3/4: Выбор пакета');
-            displayPackages();
-        }
-
-        function backToBookings() {
-            updateStep('Шаг 4/4: Список паломников');
-            displayBookings();
-        }
-    </script>
 </body>
 </html>
