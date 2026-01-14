@@ -632,6 +632,27 @@
     </div>
 </div>
 
+<!-- Модалка комментария (в Telegram prompt иногда блокируется) -->
+<div class="modal" id="comment-modal">
+    <div class="modal-content">
+        <div class="modal-header" id="comment-modal-title">Комментарий</div>
+        <div style="margin-top: 10px; color: var(--text-secondary); font-size: 14px;" id="comment-modal-subtitle">
+            Введите комментарий (обязательно)
+        </div>
+
+        <textarea
+            id="comment-modal-text"
+            style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; min-height: 110px; background: var(--bg-card); margin-top: 12px;"
+            placeholder="Напишите комментарий..."
+        ></textarea>
+
+        <div class="modal-actions" style="margin-top: 14px;">
+            <button class="action-btn" onclick="closeCommentModal()">Закрыть</button>
+            <button class="action-btn primary" id="comment-modal-confirm" onclick="confirmCommentModal()">Отправить</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
@@ -1117,37 +1138,42 @@
         if (!targetId) return;
 
         try {
-            const comment = prompt('Комментарий для отмены (обязательно):', '');
-            if (!comment || !comment.trim()) {
-                alert('❌ Нужен комментарий для заявки на отмену.');
-                return;
-            }
+            openCommentModal({
+                title: 'Отмена бронирования',
+                subtitle: 'Введите комментарий для отмены (обязательно)',
+                confirmText: 'Отправить заявку',
+                onConfirm: async (comment) => {
+                    const user = tg.initDataUnsafe?.user;
+                    const managerId = urlManagerId || user?.id || 0;
 
-            const user = tg.initDataUnsafe?.user;
-            const managerId = urlManagerId || user?.id || 0;
+                    console.log('📤 cancel request ->', targetId, comment);
 
-            const res = await fetch(`${API_URL}/api/bookings/cancel/request`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': '1'
-                },
-                body: JSON.stringify({
-                    booking_id: targetId,
-                    comment: comment.trim(),
-                    initiator_id: managerId
-                })
+                    const res = await fetch(`${API_URL}/api/bookings/cancel/request`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'ngrok-skip-browser-warning': '1'
+                        },
+                        body: JSON.stringify({
+                            booking_id: targetId,
+                            comment,
+                            initiator_id: managerId
+                        })
+                    });
+
+                    const json = await res.json().catch(async () => {
+                        const t = await res.text();
+                        throw new Error(t.slice(0, 200));
+                    });
+                    if (!res.ok || !json.ok) {
+                        throw new Error(json.error || `HTTP ${res.status}`);
+                    }
+
+                    alert('✅ Заявка на отмену отправлена администратору.');
+                    closeModal();
+                    await loadBookings(managerId);
+                }
             });
-
-            const json = await res.json();
-            if (!res.ok || !json.ok) {
-                alert('❌ Ошибка: ' + (json.error || res.status));
-                return;
-            }
-
-            alert('✅ Заявка на отмену отправлена администратору.');
-            closeModal();
-            await loadBookings(managerId);
         } catch (e) {
             alert('❌ Ошибка сети: ' + e.message);
         }
@@ -1157,51 +1183,83 @@
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
 
-        const comment = prompt('Комментарий для переноса (обязательно):', '');
-        if (!comment || !comment.trim()) {
-            alert('❌ Нужен комментарий для заявки на перенос.');
+        openCommentModal({
+            title: 'Перенос бронирования',
+            subtitle: 'Введите комментарий для переноса (обязательно)',
+            confirmText: 'Продолжить',
+            onConfirm: (comment) => {
+                try {
+                    localStorage.setItem('mode', 'reschedule');
+                    localStorage.setItem('old_booking_id', String(booking.id));
+                    localStorage.setItem('reschedule_comment', comment.trim());
+                    localStorage.setItem('is_reschedule', 'true');
+                    localStorage.setItem('reschedule_data', JSON.stringify({
+                        last_name: booking.guest_last_name || '-',
+                        first_name: booking.guest_first_name || '-',
+                        phone: booking.client_phone || '-',
+                        passport_num: booking.passport_num || '-',
+                        date_of_birth: booking.date_of_birth || '-',
+                        gender: booking.gender || 'M',
+                        passport_expiry: booking.passport_expiry || '-',
+                        iin: booking.guest_iin || '-',
+                        passport_image_path: booking.passport_image_path || null
+                    }));
+                } catch (e) {}
+
+                const pilgrims = [{
+                    last_name: booking.guest_last_name || '-',
+                    first_name: booking.guest_first_name || '-',
+                    phone: booking.client_phone || '-',
+                    passport_num: booking.passport_num || '-',
+                    date_of_birth: booking.date_of_birth || '-',
+                    gender: booking.gender || 'M',
+                    passport_expiry: booking.passport_expiry || '-',
+                    iin: booking.guest_iin || '-',
+                    passport_image_path: booking.passport_image_path || null
+                }];
+
+                const qs = new URLSearchParams({
+                    mode: 'reschedule',
+                    old_booking_id: String(booking.id),
+                    reschedule_comment: comment.trim(),
+                    pilgrims: JSON.stringify(pilgrims)
+                });
+                window.location.href = `index.html?${qs.toString()}`;
+            }
+        });
+    }
+
+    // -------- Comment modal helpers --------
+    let commentModalState = null;
+
+    function openCommentModal({ title, subtitle, confirmText, onConfirm }) {
+        commentModalState = { onConfirm };
+        document.getElementById('comment-modal-title').textContent = title || 'Комментарий';
+        document.getElementById('comment-modal-subtitle').textContent = subtitle || 'Введите комментарий (обязательно)';
+        document.getElementById('comment-modal-confirm').textContent = confirmText || 'Отправить';
+        const textarea = document.getElementById('comment-modal-text');
+        textarea.value = '';
+        document.getElementById('comment-modal').classList.add('active');
+        setTimeout(() => textarea.focus(), 50);
+    }
+
+    function closeCommentModal() {
+        document.getElementById('comment-modal').classList.remove('active');
+        commentModalState = null;
+    }
+
+    async function confirmCommentModal() {
+        const textarea = document.getElementById('comment-modal-text');
+        const comment = (textarea.value || '').trim();
+        if (!comment) {
+            alert('❌ Комментарий обязателен.');
             return;
         }
-
-        // Перенос через WebApp: создаём заявку (pending) после заполнения формы
-        // Комментарий сохраняем, чтобы подставить в форме
-        try {
-            localStorage.setItem('mode', 'reschedule');
-            localStorage.setItem('old_booking_id', String(booking.id));
-            localStorage.setItem('reschedule_comment', comment.trim());
-            localStorage.setItem('is_reschedule', 'true');
-            localStorage.setItem('reschedule_data', JSON.stringify({
-                last_name: booking.guest_last_name || '-',
-                first_name: booking.guest_first_name || '-',
-                phone: booking.client_phone || '-',
-                passport_num: booking.passport_num || '-',
-                date_of_birth: booking.date_of_birth || '-',
-                gender: booking.gender || 'M',
-                passport_expiry: booking.passport_expiry || '-',
-                iin: booking.guest_iin || '-',
-                passport_image_path: booking.passport_image_path || null
-            }));
-        } catch (e) {}
-
-        const pilgrims = [{
-            last_name: booking.guest_last_name || '-',
-            first_name: booking.guest_first_name || '-',
-            phone: booking.client_phone || '-',
-            passport_num: booking.passport_num || '-',
-            date_of_birth: booking.date_of_birth || '-',
-            gender: booking.gender || 'M',
-            passport_expiry: booking.passport_expiry || '-',
-            iin: booking.guest_iin || '-',
-            passport_image_path: booking.passport_image_path || null
-        }];
-
-        const qs = new URLSearchParams({
-            mode: 'reschedule',
-            old_booking_id: String(booking.id),
-            reschedule_comment: comment.trim(),
-            pilgrims: JSON.stringify(pilgrims)
-        });
-        window.location.href = `index.html?${qs.toString()}`;
+        const handler = commentModalState?.onConfirm;
+        closeCommentModal();
+        if (typeof handler === 'function') {
+            await handler(comment);
+        }
     }
 
     function rescheduleBooking() {
