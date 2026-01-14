@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заполнить OPEN DATE</title>
+    <title>✍️ Заполнить OPEN DATE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="config.js"></script>
     <style>
@@ -208,7 +208,11 @@
         <p>Бронирование без конкретной даты</p>
     </div>
 
-	    <label for="pilgrim_count_input">Количество </label>
+	    <div class="info-box">
+	        <p><strong>Количество паломников</strong></p>
+	    </div>
+
+	    <label for="pilgrim_count_input">Количество *</label>
 	    <input type="number" id="pilgrim_count_input" min="1" max="30" value="1" required>
 
 	    <div id="pilgrimsContainer"></div>
@@ -216,19 +220,19 @@
     <label for="room_type">Размещение</label>
     <select id="room_type">
         <option value="не указано">Не указано</option>
-        <option value="QUADRO">QUADRO</option>
-        <option value="TRIPLE">TRIPLE</option>
-        <option value="DOUBLE">DOUBLE</option>
-        <option value="SINGLE">SINGLE</option>
+        <option value="QUADRO">QUADRO (4 местный)</option>
+        <option value="TRIPLE">TRIPLE (3 местный)</option>
+        <option value="DOUBLE">DOUBLE (2 местный)</option>
+        <option value="SINGLE">SINGLE (1 местный)</option>
     </select>
 
     <label for="meal_type">Питание</label>
     <select id="meal_type">
         <option value="не указано">Не указано</option>
-        <option value="BB">BB </option>
-        <option value="HB">HB </option>
-        <option value="FB">RO </option>
-        <option value="AI">INF </option>
+        <option value="BB">BB (Завтрак)</option>
+        <option value="HB">HB (Завтрак + Ужин)</option>
+        <option value="FB">FB (Полный пансион)</option>
+        <option value="AI">AI (Все включено)</option>
     </select>
 
 	    <label for="price">Цена</label>
@@ -240,7 +244,7 @@
 	    <label for="region">Регион</label>
 	    <input type="text" id="region">
 
-	    <label for="client_phone">Номер телефона </label>
+	    <label for="client_phone">Телефон клиента *</label>
 	    <input type="tel" id="client_phone" required>
 
 	    <label for="comment">Комментарий</label>
@@ -251,6 +255,7 @@
     </button>
 
     <script>
+        const API_URL = window.BULL_API_URL;
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
@@ -283,16 +288,16 @@
 
 	                    <div class="row">
 	                        <div class="col">
-	                            <label>Фамилия </label>
+	                            <label>Фамилия *</label>
 	                            <input type="text" class="last_name" required>
 	                        </div>
 	                        <div class="col">
-	                            <label>Имя </label>
+	                            <label>Имя *</label>
 	                            <input type="text" class="first_name" required>
 	                        </div>
 	                    </div>
 
-	                    <label>Пол </label>
+	                    <label>Пол *</label>
 	                    <div class="radio-group">
 	                        <input type="radio" id="gender_m_${i}" name="gender_${i}" value="M" required>
 	                        <label for="gender_m_${i}">Мужчина</label>
