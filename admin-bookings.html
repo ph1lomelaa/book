@@ -321,35 +321,34 @@
             transform: translateY(0);
         }
 
-        /* Новая компактная кнопка скачивания паспорта */
+        /* Кнопка скачивания паспорта (светлая, под стиль приложения) */
         .download-passport-compact {
-            padding: 10px 18px;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--success-text);
-            border: 2px solid var(--success-text);
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--bg-secondary) 100%);
+            color: var(--accent-dark);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(46, 125, 50, 0.15);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-soft);
             white-space: nowrap;
         }
 
         .download-passport-compact:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
-            background: var(--success-bg);
-            border-color: var(--success-text);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-light);
+            background: var(--bg-secondary);
         }
 
         .download-passport-compact:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 1px 4px rgba(46, 125, 50, 0.2);
         }
 
         .download-passport-compact:disabled {
-            opacity: 0.4;
+            opacity: 0.55;
             cursor: not-allowed;
             transform: none;
         }
@@ -719,10 +718,11 @@
                                 onerror="this.style.display='none'"
                             >
                             <button
-                                class="download-pdf-btn"
+                                class="download-passport-compact"
                                 onclick="downloadPassportPDF(event, ${booking.id})"
+                                title="Скачать паспорт в PDF"
                             >
-                                📄 Скачать PDF
+                                📥 Скачать паспорт
                             </button>
                         </div>
                     `;
@@ -747,14 +747,7 @@
                             ${groupLabel ? `<div class="booking-detail">Группа: <strong>${groupLabel}</strong></div>` : ''}
                         </div>
 
-                        <button
-                            class="download-passport-compact"
-                            onclick="downloadPassportPDF(event, ${booking.id})"
-                            style="margin: 12px 0;"
-                            ${!passportImage ? 'disabled title="Паспорт не загружен"' : ''}
-                        >
-                            📥 Скачать паспорт
-                        </button>
+                        <!-- Кнопка скачивания перенесена под фото паспорта (выше), чтобы не дублировать -->
 
                 <button class="details-btn" onclick="toggleDetails(event, 'details-${index}', this)">
                     📋 Подробнее
