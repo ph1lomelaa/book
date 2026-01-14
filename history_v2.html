@@ -646,6 +646,8 @@
             placeholder="Напишите комментарий..."
         ></textarea>
 
+        <div id="comment-modal-extra" style="margin-top: 12px;"></div>
+
         <div class="modal-actions" style="margin-top: 14px;">
             <button class="action-btn" onclick="closeCommentModal()">Закрыть</button>
             <button class="action-btn primary" id="comment-modal-confirm" onclick="confirmCommentModal()">Отправить</button>
@@ -1183,44 +1185,90 @@
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
 
+        const samePackage = allBookings
+            .filter(b => (b.package_name || '') === (booking.package_name || '') && b.id !== booking.id)
+            .filter(b => {
+                const st = mapStatus(b.status);
+                return st !== 'cancelled' && st !== 'rescheduled';
+            });
+
+        const extraHtml = samePackage.length
+            ? `
+                <div style="padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--bg-secondary);">
+                    <div style="font-weight: 700; color: var(--accent-dark); margin-bottom: 8px;">
+                        Выберите дополнительно паломников, если хотите перенести их вместе (семья/группа)
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        ${samePackage.map(p => {
+                            const fio = `${p.guest_last_name || '-'} ${p.guest_first_name || '-'}`.trim();
+                            const row = p.sheet_row_number ? ` · строка ${p.sheet_row_number}` : '';
+                            return `
+                                <label style="display:flex; align-items:center; gap:10px; font-size:14px; color: var(--text-primary);">
+                                    <input type="checkbox" data-resched-booking-id="${p.id}" style="width:18px; height:18px;">
+                                    <span>${fio}${row}</span>
+                                </label>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `
+            : '';
+
         openCommentModal({
             title: 'Перенос бронирования',
             subtitle: 'Введите комментарий для переноса (обязательно)',
             confirmText: 'Продолжить',
-            onConfirm: (comment) => {
+            extraHtml,
+            getExtraData: () => {
+                const ids = Array.from(document.querySelectorAll('[data-resched-booking-id]'))
+                    .filter(el => el.checked)
+                    .map(el => parseInt(el.getAttribute('data-resched-booking-id'), 10))
+                    .filter(n => Number.isFinite(n));
+                return { extra_booking_ids: ids };
+            },
+            onConfirm: (comment, extraData) => {
+                const extraIds = (extraData?.extra_booking_ids || []);
+                const selectedIds = Array.from(new Set([booking.id, ...extraIds]));
+
+                const selectedBookings = selectedIds
+                    .map(id => allBookings.find(b => b.id === id))
+                    .filter(Boolean);
+
                 try {
                     localStorage.setItem('mode', 'reschedule');
                     localStorage.setItem('old_booking_id', String(booking.id));
+                    localStorage.setItem('old_booking_ids', JSON.stringify(selectedIds));
                     localStorage.setItem('reschedule_comment', comment.trim());
                     localStorage.setItem('is_reschedule', 'true');
-                    localStorage.setItem('reschedule_data', JSON.stringify({
-                        last_name: booking.guest_last_name || '-',
-                        first_name: booking.guest_first_name || '-',
-                        phone: booking.client_phone || '-',
-                        passport_num: booking.passport_num || '-',
-                        date_of_birth: booking.date_of_birth || '-',
-                        gender: booking.gender || 'M',
-                        passport_expiry: booking.passport_expiry || '-',
-                        iin: booking.guest_iin || '-',
-                        passport_image_path: booking.passport_image_path || null
-                    }));
+                    localStorage.setItem('reschedule_data', JSON.stringify(selectedBookings.map(b => ({
+                        last_name: b.guest_last_name || '-',
+                        first_name: b.guest_first_name || '-',
+                        phone: b.client_phone || '-',
+                        passport_num: b.passport_num || '-',
+                        date_of_birth: b.date_of_birth || '-',
+                        gender: b.gender || 'M',
+                        passport_expiry: b.passport_expiry || '-',
+                        iin: b.guest_iin || '-',
+                        passport_image_path: b.passport_image_path || null
+                    }))));
                 } catch (e) {}
 
-                const pilgrims = [{
-                    last_name: booking.guest_last_name || '-',
-                    first_name: booking.guest_first_name || '-',
-                    phone: booking.client_phone || '-',
-                    passport_num: booking.passport_num || '-',
-                    date_of_birth: booking.date_of_birth || '-',
-                    gender: booking.gender || 'M',
-                    passport_expiry: booking.passport_expiry || '-',
-                    iin: booking.guest_iin || '-',
-                    passport_image_path: booking.passport_image_path || null
-                }];
+                const pilgrims = selectedBookings.map(b => ({
+                    last_name: b.guest_last_name || '-',
+                    first_name: b.guest_first_name || '-',
+                    phone: b.client_phone || '-',
+                    passport_num: b.passport_num || '-',
+                    date_of_birth: b.date_of_birth || '-',
+                    gender: b.gender || 'M',
+                    passport_expiry: b.passport_expiry || '-',
+                    iin: b.guest_iin || '-',
+                    passport_image_path: b.passport_image_path || null
+                }));
 
                 const qs = new URLSearchParams({
                     mode: 'reschedule',
                     old_booking_id: String(booking.id),
+                    old_booking_ids: JSON.stringify(selectedIds),
                     reschedule_comment: comment.trim(),
                     pilgrims: JSON.stringify(pilgrims)
                 });
@@ -1232,13 +1280,15 @@
     // -------- Comment modal helpers --------
     let commentModalState = null;
 
-    function openCommentModal({ title, subtitle, confirmText, onConfirm }) {
-        commentModalState = { onConfirm };
+    function openCommentModal({ title, subtitle, confirmText, extraHtml, getExtraData, onConfirm }) {
+        commentModalState = { onConfirm, getExtraData };
         document.getElementById('comment-modal-title').textContent = title || 'Комментарий';
         document.getElementById('comment-modal-subtitle').textContent = subtitle || 'Введите комментарий (обязательно)';
         document.getElementById('comment-modal-confirm').textContent = confirmText || 'Отправить';
         const textarea = document.getElementById('comment-modal-text');
         textarea.value = '';
+        const extraDiv = document.getElementById('comment-modal-extra');
+        extraDiv.innerHTML = extraHtml || '';
         document.getElementById('comment-modal').classList.add('active');
         setTimeout(() => textarea.focus(), 50);
     }
@@ -1255,10 +1305,13 @@
             alert('❌ Комментарий обязателен.');
             return;
         }
+        const extra = typeof commentModalState?.getExtraData === 'function'
+            ? commentModalState.getExtraData()
+            : null;
         const handler = commentModalState?.onConfirm;
         closeCommentModal();
         if (typeof handler === 'function') {
-            await handler(comment);
+            await handler(comment, extra);
         }
     }
 
