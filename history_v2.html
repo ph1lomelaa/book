@@ -1246,7 +1246,10 @@
 
                 console.log('📥 Ответ от сервера, status:', uploadRes.status);
 
-                const uploadJson = await uploadRes.json();
+                const uploadJson = await uploadRes.json().catch(async () => {
+                    const t = await uploadRes.text();
+                    throw new Error(`Некорректный ответ сервера: ${t.slice(0, 200)}`);
+                });
                 console.log('📋 Данные от сервера:', uploadJson);
 
                 if (!uploadRes.ok || !uploadJson.ok) {
@@ -1280,7 +1283,10 @@
 
                 console.log('📥 Ответ на обновление, status:', updateRes.status);
 
-                const updateJson = await updateRes.json();
+                const updateJson = await updateRes.json().catch(async () => {
+                    const t = await updateRes.text();
+                    throw new Error(`Некорректный ответ при обновлении брони: ${t.slice(0, 200)}`);
+                });
                 console.log('📋 Результат обновления:', updateJson);
 
                 if (!updateRes.ok || !updateJson.ok) {
