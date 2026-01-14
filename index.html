@@ -1070,21 +1070,21 @@
     console.log("   booking_id:", editBookingId);
     console.log("   old_booking_id:", oldBookingId);
 
-		    currentMode = modeParam || localStorage.getItem('mode') || 'create';
-		    currentBookingId = editBookingId || localStorage.getItem('edit_booking_id') || null;
-		    let currentOldBookingId = oldBookingId || localStorage.getItem('old_booking_id') || null;
-		    let currentOldBookingIds = [];
-		    try {
-		        if (oldBookingIdsParam) {
-		            currentOldBookingIds = JSON.parse(oldBookingIdsParam);
-		            localStorage.setItem('old_booking_ids', JSON.stringify(currentOldBookingIds));
-		        } else {
-		            const stored = localStorage.getItem('old_booking_ids');
-		            if (stored) currentOldBookingIds = JSON.parse(stored);
-		        }
-		    } catch (e) {
-		        currentOldBookingIds = [];
-		    }
+	    currentMode = modeParam || localStorage.getItem('mode') || 'create';
+	    currentBookingId = editBookingId || localStorage.getItem('edit_booking_id') || null;
+	    let currentOldBookingId = oldBookingId || localStorage.getItem('old_booking_id') || null;
+	    let currentOldBookingIds = [];
+	    try {
+	        if (oldBookingIdsParam) {
+	            currentOldBookingIds = JSON.parse(oldBookingIdsParam);
+	            localStorage.setItem('old_booking_ids', JSON.stringify(currentOldBookingIds));
+	        } else {
+	            const stored = localStorage.getItem('old_booking_ids');
+	            if (stored && currentMode === 'reschedule') currentOldBookingIds = JSON.parse(stored);
+	        }
+	    } catch (e) {
+	        currentOldBookingIds = [];
+	    }
 
 	    // Если комментарий переноса передали через URL — сохраняем (чтобы не потерялся при редиректах)
 	    if (rescheduleCommentParam) {
@@ -1806,7 +1806,7 @@
         if (currentMode !== 'edit') {
             const missing = (pilgrimsData || []).findIndex(p => {
                 const phone = String(p?.phone || '').trim();
-                return !phone || phone === '-' || phone.length < 6;
+                return !phone || phone === '-';
             });
             if (missing !== -1) {
                 const p = pilgrimsData[missing] || {};
@@ -1978,7 +1978,16 @@
 	        if (currentMode === 'reschedule') {
 	            data.old_booking_id = currentOldBookingId ? parseInt(currentOldBookingId, 10) : null;
 	            if (Array.isArray(currentOldBookingIds) && currentOldBookingIds.length > 0) {
-	                data.old_booking_ids = currentOldBookingIds.map(n => parseInt(n, 10)).filter(n => Number.isFinite(n));
+	                // Если по какой-то причине старый список "не соответствует" текущему кол-ву паломников,
+	                // отправляем перенос как одиночный (чтобы не падать с ошибкой)
+	                const normalized = currentOldBookingIds.map(n => parseInt(n, 10)).filter(n => Number.isFinite(n));
+	                if (normalized.length === pilgrims.length) {
+	                    data.old_booking_ids = normalized;
+	                } else if (data.old_booking_id) {
+	                    data.old_booking_ids = [data.old_booking_id];
+	                }
+	            } else if (data.old_booking_id) {
+	                data.old_booking_ids = [data.old_booking_id];
 	            }
 	        }
 
