@@ -1802,6 +1802,20 @@
         const price = document.getElementById('price').value;
         if (!pkg || pkg === "" || !price) return alert("Заполните Пакет и Цену!");
 
+        // Телефон обязателен при создании заявки (create/reschedule), иначе отдел заботы не сможет обработать
+        if (currentMode !== 'edit') {
+            const missing = (pilgrimsData || []).findIndex(p => {
+                const phone = String(p?.phone || '').trim();
+                return !phone || phone === '-' || phone.length < 6;
+            });
+            if (missing !== -1) {
+                const p = pilgrimsData[missing] || {};
+                const fio = `${p.last_name || '-'} ${p.first_name || '-'}`.trim();
+                alert(`Укажите номер телефона для паломника #${missing + 1} (${fio}).`);
+                return;
+            }
+        }
+
         // В режиме редактирования не показываем выбор размещения — сразу сохраняем изменения
         if (currentMode === 'edit') {
             finalSubmit();
