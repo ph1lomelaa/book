@@ -615,29 +615,21 @@
             }
         }
 
-        async function downloadPassportPDF(event, bookingId) {
-            event.stopPropagation();
+        async function downloadPassportPDF(evt, bookingId) {
+            evt?.preventDefault();
+            evt?.stopPropagation();
 
             try {
-                const response = await fetch(`${API_URL}/api/care/passport-pdf/${bookingId}`, {
-                    headers: {
-                        'ngrok-skip-browser-warning': '1'
-                    }
-                });
+                const directUrl = `${API_URL}/api/care/passport-pdf/${bookingId}?ngrok-skip-browser-warning=1`;
 
-                if (!response.ok) {
-                    throw new Error('Ошибка загрузки паспорта');
+                // В Telegram WebApp скачивание через blob часто блокируется — открываем ссылку напрямую
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.openLink(directUrl);
+                    return;
                 }
 
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `passport_${bookingId}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
+                // Обычный браузер: тоже проще открыть прямую ссылку (сервер сам отдаст файл)
+                window.open(directUrl, '_blank', 'noopener,noreferrer');
             } catch (error) {
                 console.error('Download error:', error);
                 alert('Ошибка при скачивании паспорта');
