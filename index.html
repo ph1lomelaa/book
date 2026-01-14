@@ -1052,7 +1052,6 @@
         document.getElementById('table_id_hidden').value = opt.dataset.table;
     };
 
-    // --- ПАРСИНГ ТУРИСТОВ ИЗ URL ---
     const urlParams = new URLSearchParams(window.location.search);
 	    const pRaw = urlParams.get('pilgrims');
 	    const fillModeParam = (urlParams.get('fill_mode') || '').toLowerCase();
@@ -1070,21 +1069,43 @@
     console.log("   booking_id:", editBookingId);
     console.log("   old_booking_id:", oldBookingId);
 
-	    currentMode = modeParam || localStorage.getItem('mode') || 'create';
-	    currentBookingId = editBookingId || localStorage.getItem('edit_booking_id') || null;
-	    let currentOldBookingId = oldBookingId || localStorage.getItem('old_booking_id') || null;
-	    let currentOldBookingIds = [];
-	    try {
-	        if (oldBookingIdsParam) {
-	            currentOldBookingIds = JSON.parse(oldBookingIdsParam);
-	            localStorage.setItem('old_booking_ids', JSON.stringify(currentOldBookingIds));
-	        } else {
-	            const stored = localStorage.getItem('old_booking_ids');
-	            if (stored && currentMode === 'reschedule') currentOldBookingIds = JSON.parse(stored);
-	        }
-	    } catch (e) {
-	        currentOldBookingIds = [];
-	    }
+		    currentMode = modeParam || localStorage.getItem('mode') || 'create';
+		    currentBookingId = editBookingId || localStorage.getItem('edit_booking_id') || null;
+		    let currentOldBookingId = oldBookingId || localStorage.getItem('old_booking_id') || null;
+		    let currentOldBookingIds = [];
+
+		    // Если открыли форму без mode=... (обычное создание), не тащим хвосты переноса из localStorage
+		    // (иначе UI/комментарии/endpoint могут "думать", что это перенос).
+		    if (!modeParam) {
+		        currentMode = 'create';
+		        try {
+		            localStorage.removeItem('mode');
+		            localStorage.removeItem('is_reschedule');
+		            localStorage.removeItem('old_booking_id');
+		            localStorage.removeItem('old_booking_ids');
+		            localStorage.removeItem('reschedule_comment');
+		            localStorage.removeItem('reschedule_data');
+		            localStorage.removeItem('old_booking_id');
+		        } catch (e) {}
+		        currentOldBookingId = null;
+		        currentOldBookingIds = [];
+		    }
+		    try {
+		        if (oldBookingIdsParam) {
+		            currentOldBookingIds = JSON.parse(oldBookingIdsParam);
+		            localStorage.setItem('old_booking_ids', JSON.stringify(currentOldBookingIds));
+		        } else {
+		            const stored = localStorage.getItem('old_booking_ids');
+		            if (stored && currentMode === 'reschedule') currentOldBookingIds = JSON.parse(stored);
+		        }
+		    } catch (e) {
+		        currentOldBookingIds = [];
+		    }
+
+		    if (currentMode !== 'reschedule') {
+		        currentOldBookingId = null;
+		        currentOldBookingIds = [];
+		    }
 
 	    // Если комментарий переноса передали через URL — сохраняем (чтобы не потерялся при редиректах)
 	    if (rescheduleCommentParam) {
