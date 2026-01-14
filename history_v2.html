@@ -595,9 +595,9 @@
         <div id="modal-body"></div>
 
         <div class="modal-actions">
-            <button class="action-btn" onclick="closeModal()">Закрыть</button>
-            <button class="action-btn danger" id="cancel-btn" onclick="promptCancelSelected()">Отменить</button>
-            <button class="action-btn primary" id="reschedule-btn" onclick="rescheduleBooking()">Перенести</button>
+            <button class="action-btn" onclick="console.log('⭕ Кнопка Закрыть нажата'); closeModal()">Закрыть</button>
+            <button class="action-btn danger" id="cancel-btn" onclick="console.log('🔴 Кнопка ОТМЕНИТЬ нажата'); promptCancelSelected()">Отменить</button>
+            <button class="action-btn primary" id="reschedule-btn" onclick="console.log('🟡 Кнопка ПЕРЕНЕСТИ нажата'); rescheduleBooking()">Перенести</button>
         </div>
     </div>
 </div>
@@ -663,8 +663,12 @@
         return `${dateStr} ${timeStr}`;
     };
     const requireCancelConfirm = (booking) => {
+        console.log('🔵 requireCancelConfirm вызвана для:', booking.guest_last_name, booking.guest_first_name);
         const answer = prompt(`Чтобы отменить бронь для ${booking.guest_last_name || ''} ${booking.guest_first_name || ''}, введите YES`);
-        return answer && answer.trim().toLowerCase() === 'yes';
+        console.log('🔵 Пользователь ввел:', answer);
+        const result = answer && answer.trim().toLowerCase() === 'yes';
+        console.log('🔵 Результат проверки:', result);
+        return result;
     };
 
     async function init() {
@@ -979,10 +983,10 @@
 
                 ${!cancelled ? `
                 <div class="booking-actions">
-                    <button class="action-btn" onclick="startEditData(${booking.id})">✏️ Изменить</button>
-                    <button class="action-btn" onclick="startUploadPassport(${booking.id})">📄 Загрузить паспорт</button>
-                    <button class="action-btn" onclick="startReschedule(${booking.id})">Перенести</button>
-                    <button class="action-btn danger" onclick="confirmCancel(${booking.id})">Отменить</button>
+                    <button class="action-btn" onclick="console.log('✏️ ИЗМЕНИТЬ нажата'); startEditData(${booking.id})">✏️ Изменить</button>
+                    <button class="action-btn" onclick="console.log('📄 ЗАГРУЗИТЬ ПАСПОРТ нажата'); startUploadPassport(${booking.id})">📄 Загрузить паспорт</button>
+                    <button class="action-btn" onclick="console.log('🟡 ПЕРЕНЕСТИ (карточка) нажата, ID=${booking.id}'); startReschedule(${booking.id})">Перенести</button>
+                    <button class="action-btn danger" onclick="console.log('🔴 ОТМЕНИТЬ (карточка) нажата, ID=${booking.id}'); confirmCancel(${booking.id})">Отменить</button>
                 </div>
                 ` : ''}
             </div>
@@ -1005,10 +1009,17 @@
     }
 
     function showDetails(bookingId) {
+        console.log('🔷 showDetails вызвана, booking ID:', bookingId);
         const booking = allBookings.find(b => b.id === bookingId);
-        if (!booking) return;
 
+        if (!booking) {
+            console.error('❌ Бронь не найдена в allBookings');
+            return;
+        }
+
+        console.log('🔷 Найдена бронь:', booking);
         selectedBooking = booking;
+        console.log('🔷 selectedBooking установлен:', selectedBooking);
         
         document.getElementById('modal-title').textContent =
             `${booking.guest_last_name || ''} ${booking.guest_first_name || ''}`;
@@ -1069,52 +1080,76 @@
         `;
         
         const status = mapStatus(booking.status);
-        document.getElementById('cancel-btn').style.display = status === 'cancelled' ? 'none' : 'inline-flex';
-        document.getElementById('reschedule-btn').style.display = status === 'cancelled' ? 'none' : 'inline-flex';
-        
+        console.log('📊 Статус брони:', booking.status, '-> mapped:', status);
+
+        const cancelBtn = document.getElementById('cancel-btn');
+        const rescheduleBtn = document.getElementById('reschedule-btn');
+
+        const shouldHide = status === 'cancelled';
+        cancelBtn.style.display = shouldHide ? 'none' : 'inline-flex';
+        rescheduleBtn.style.display = shouldHide ? 'none' : 'inline-flex';
+
+        console.log('🔘 Кнопка ОТМЕНИТЬ видна:', cancelBtn.style.display !== 'none');
+        console.log('🔘 Кнопка ПЕРЕНЕСТИ видна:', rescheduleBtn.style.display !== 'none');
+
         document.getElementById('detail-modal').classList.add('active');
+        console.log('✅ Модальное окно открыто');
     }
 
     function closeModal() {
+        console.log('🔶 closeModal вызвана');
         document.getElementById('detail-modal').classList.remove('active');
         selectedBooking = null;
+        console.log('🔶 selectedBooking сброшен');
     }
 
     async function confirmCancel(bookingId) {
-        const booking = allBookings.find(b => b.id === bookingId);
-        if (!booking) return;
-        
-        if (!requireCancelConfirm(booking)) return;
         await cancelBooking(bookingId);
     }
 
     async function promptCancelSelected() {
         if (!selectedBooking) return;
-        if (!requireCancelConfirm(selectedBooking)) return;
         await cancelBooking(selectedBooking.id);
     }
 
     async function cancelBooking(bookingId) {
         const targetId = bookingId || selectedBooking?.id;
         if (!targetId) return;
+
         try {
-            const comment = prompt('Комментарий для отмены (обязательно):', '') || '';
-            if (!comment.trim()) {
+            const comment = prompt('Комментарий для отмены (обязательно):', '');
+            if (!comment || !comment.trim()) {
                 alert('❌ Нужен комментарий для заявки на отмену.');
                 return;
             }
 
-            // Отмена только через админское подтверждение: отправляем заявку в бот
-            tg.sendData(JSON.stringify({
-                action: "cancel_request",
-                booking_id: targetId,
-                comment: comment.trim()
-            }));
+            const user = tg.initDataUnsafe?.user;
+            const managerId = urlManagerId || user?.id || 0;
 
-            alert('⏳ Заявка на отмену отправлена администратору. Ожидайте подтверждения.');
+            const res = await fetch(`${API_URL}/api/bookings/cancel/request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': '1'
+                },
+                body: JSON.stringify({
+                    booking_id: targetId,
+                    comment: comment.trim(),
+                    initiator_id: managerId
+                })
+            });
+
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                alert('❌ Ошибка: ' + (json.error || res.status));
+                return;
+            }
+
+            alert('✅ Заявка на отмену отправлена администратору.');
             closeModal();
+            await loadBookings(managerId);
         } catch (e) {
-            alert('❌ Ошибка сети: ' + e);
+            alert('❌ Ошибка сети: ' + e.message);
         }
     }
 
@@ -1122,8 +1157,8 @@
         const booking = allBookings.find(b => b.id === bookingId);
         if (!booking) return;
 
-        const comment = prompt('Комментарий для переноса (обязательно):', '') || '';
-        if (!comment.trim()) {
+        const comment = prompt('Комментарий для переноса (обязательно):', '');
+        if (!comment || !comment.trim()) {
             alert('❌ Нужен комментарий для заявки на перенос.');
             return;
         }
@@ -1170,9 +1205,8 @@
     }
 
     function rescheduleBooking() {
-        if (selectedBooking) {
-            startReschedule(selectedBooking.id);
-        }
+        if (!selectedBooking) return;
+        startReschedule(selectedBooking.id);
     }
 
     async function startUploadPassport(bookingId) {
@@ -1185,7 +1219,12 @@
 
         input.onchange = async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            console.log('📁 Выбран файл:', file?.name, 'размер:', file?.size);
+
+            if (!file) {
+                console.error('❌ Файл не выбран');
+                return;
+            }
 
             // overlay loading
             const loadingDiv = document.createElement('div');
@@ -1197,18 +1236,28 @@
                 const formData = new FormData();
                 formData.append("file", file);
 
+                console.log('📤 Отправляем файл на:', `${API_URL}/api/passports/upload`);
+
                 const uploadRes = await fetch(`${API_URL}/api/passports/upload`, {
                     method: "POST",
                     body: formData,
                     headers: {"ngrok-skip-browser-warning": "1"}
                 });
+
+                console.log('📥 Ответ от сервера, status:', uploadRes.status);
+
                 const uploadJson = await uploadRes.json();
+                console.log('📋 Данные от сервера:', uploadJson);
+
                 if (!uploadRes.ok || !uploadJson.ok) {
                     throw new Error(uploadJson.error || `Ошибка загрузки: ${uploadRes.status}`);
                 }
 
                 const passportPath = uploadJson.path;
                 const parsedData = uploadJson.parsed_data || uploadJson.data || {};
+
+                console.log('📄 Путь к паспорту:', passportPath);
+                console.log('🔍 Распознанные данные:', parsedData);
 
                 // Только сохраняем файл паспорта и тип документа, остальные данные брони НЕ трогаем
                 const patchBody = {
@@ -1218,6 +1267,8 @@
                     }]
                 };
 
+                console.log('📤 Обновляем бронь #', bookingId, 'с данными:', patchBody);
+
                 const updateRes = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
                     method: 'PATCH',
                     headers: {
@@ -1226,7 +1277,12 @@
                     },
                     body: JSON.stringify(patchBody)
                 });
+
+                console.log('📥 Ответ на обновление, status:', updateRes.status);
+
                 const updateJson = await updateRes.json();
+                console.log('📋 Результат обновления:', updateJson);
+
                 if (!updateRes.ok || !updateJson.ok) {
                     throw new Error(updateJson.error || 'Ошибка обновления данных');
                 }
@@ -1236,6 +1292,7 @@
                 const user = tg.initDataUnsafe?.user;
                 await loadBookings(urlManagerId || user?.id || 0);
             } catch (err) {
+                console.error('❌ ОШИБКА при загрузке паспорта:', err);
                 alert('❌ Ошибка загрузки: ' + err.message);
             } finally {
                 document.body.removeChild(loadingDiv);
