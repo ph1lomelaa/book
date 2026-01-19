@@ -76,9 +76,8 @@
       <div class="card" data-id="${r.id}">
         <div class="header">
           <div>
-            <div class="title">Бронь #${r.booking_id} · ${b.package_name || '-'}</div>
-            <div class="meta">Лист: ${b.sheet_name || '-'} · Таблица: ${b.table_id || '-'} · Строка: ${b.sheet_row_number || '-'}</div>
-            <div class="meta">Инициатор: ${r.initiator_id}</div>
+            <div class="title">Бронь · ${b.package_name || '-'}</div>
+            <div class="meta">Лист: ${b.sheet_name || '-'} ·  Строка: ${b.sheet_row_number || '-'}</div>
           </div>
           <div class="status">${r.request_type === 'cancel' ? 'Отмена' : 'Перенос'}</div>
         </div>
