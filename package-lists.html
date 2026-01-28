@@ -237,6 +237,24 @@
             margin-left: 4px;
         }
 
+        .passport-warning {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 2px solid var(--danger-text);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+            animation: pulse-warning 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
         .details-btn {
             width: 100%;
             padding: 12px;
@@ -812,7 +830,7 @@
                         `}
                     </div>
                     ${booking.id <= 1331 ? `
-                        <div class="passport-warning" style="margin-top: 12px; background: #FFE8CC; border-color: #FFB800;">
+                        <div class="passport-warning">
                             ℹ️ Оригинал паспорта отсутствует. Данный паспорт не поддерживает visa bot.
                         </div>
                     ` : ''}
