@@ -403,6 +403,24 @@
             transform: none;
         }
 
+        /* Надпись для старых записей */
+        .old-passport-notice {
+            flex: 1;
+            min-width: 140px;
+            padding: 10px 12px;
+            background: linear-gradient(135deg, #FFF3CD 0%, #FFE8A0 100%);
+            color: #856404;
+            border: 1px solid #FFD700;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .no-data {
             text-align: center;
             padding: 60px 20px;
@@ -773,21 +791,32 @@
                         <div class="booking-detail">📄 Строка листа: <strong>${sheetRow}</strong></div>
                     </div>
                     <div class="passport-buttons">
-                        <button
-                            class="download-passport-compact"
-                            onclick="downloadPassportPDF(event, ${booking.id})"
-                            ${!passportImage ? 'disabled title="Паспорт не загружен"' : 'title="Компактный PDF ≤1MB для архива"'}
-                        >
-                            📄 Компактный PDF
-                        </button>
-                        <button
-                            class="download-passport-original"
-                            onclick="downloadPassportOriginal(event, ${booking.id})"
-                            ${!passportImage ? 'disabled title="Паспорт не загружен"' : 'title="Оригинальный файл без сжатия для OCR"'}
-                        >
-                            🔍 Оригинал для OCR
-                        </button>
+                        ${booking.id > 1331 ? `
+                            <button
+                                class="download-passport-original"
+                                onclick="downloadPassportOriginal(event, ${booking.id})"
+                                ${!passportImage ? 'disabled title="Паспорт не загружен"' : 'title="Оригинальный файл без сжатия для OCR"'}
+                            >
+                                Скачать оригинал PDF паспорта
+                            </button>
+                        ` : `
+                            <button
+                                class="download-passport-compact"
+                                onclick="downloadPassportPDF(event, ${booking.id})"
+                                ${!passportImage ? 'disabled title="Паспорт не загружен"' : 'title="Компактный PDF ≤1MB для архива"'}
+                            >
+                                Скачать паспорт PDF - не поддерживает виза бот
+                            </button>
+                            <div class="old-passport-notice">
+                                ⚠️ Оригинал недоступен
+                            </div>
+                        `}
                     </div>
+                    ${booking.id <= 1331 ? `
+                        <div class="passport-warning" style="margin-top: 12px; background: #FFE8CC; border-color: #FFB800;">
+                            ℹ️ Оригинал паспорта отсутствует. Данный паспорт не поддерживает visa bot.
+                        </div>
+                    ` : ''}
                     <button class="details-btn" onclick="toggleDetails(${index})">📋 Подробнее</button>
                     <div class="booking-details-full" id="details-${index}">
                         <div class="details-section">
