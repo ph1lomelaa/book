@@ -344,10 +344,10 @@
             flex: 1;
             min-width: 140px;
             padding: 10px 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--accent-light) !important;
             border-radius: 12px;
-            background: linear-gradient(135deg, #FFFFFF 0%, var(--bg-secondary) 100%);
-            color: var(--accent-dark);
+            background: linear-gradient(135deg, var(--accent-brown) 0%, var(--accent-dark) 100%) !important;
+            color: white !important;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
@@ -358,8 +358,8 @@
         .download-passport-compact:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: var(--shadow-medium);
-            border-color: var(--accent-light);
-            background: var(--bg-secondary);
+            border-color: var(--accent-brown) !important;
+            background: linear-gradient(135deg, #b99a88 0%, var(--accent-brown) 100%) !important;
         }
 
         .download-passport-compact:active:not(:disabled) {
