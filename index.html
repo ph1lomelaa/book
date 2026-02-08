@@ -1137,14 +1137,23 @@
         const { title } = splitPackageName(name);
         if (!title) return true;
 
-        let normalized = title.trim().toUpperCase();
-        // Убираем ведущие даты/диапазоны дат, чтобы фильтр работал по маршруту
-        normalized = normalized
-            .replace(/^\d{1,2}[./]\d{1,2}\s*[-–—]\s*\d{1,2}[./]\d{1,2}\s*/g, '')
-            .replace(/^\d{1,2}[./]\d{1,2}\s*/g, '');
+        const raw = title.trim().toUpperCase();
+        const dateRangeRx = /^\d{1,2}[./]\d{1,2}\s*[-–—]\s*\d{1,2}[./]\d{1,2}\s*/;
+        const dateRx = /^\d{1,2}[./]\d{1,2}\s*/;
+        const hasDatePrefix = dateRangeRx.test(raw) || dateRx.test(raw);
 
-        const blockedPrefixes = ['ALA-JED', 'BUS', 'JED', 'ALA', 'MAD', 'NQZ'];
-        return blockedPrefixes.some(prefix => normalized.startsWith(prefix));
+        // Убираем ведущие даты/диапазоны дат, чтобы фильтр работал по маршруту
+        const normalized = raw.replace(dateRangeRx, '').replace(dateRx, '');
+
+        // Эти префиксы скрываем всегда
+        const alwaysBlocked = ['ALA-JED', 'BUS', 'JED', 'ALA', 'MAD', 'NQZ'];
+        if (alwaysBlocked.some(prefix => normalized.startsWith(prefix))) return true;
+
+        // HIKMA/NIYET скрываем только если НЕТ даты в начале
+        const blockedWithoutDate = ['HIKMA', 'NIYET'];
+        if (!hasDatePrefix && blockedWithoutDate.some(prefix => normalized.startsWith(prefix))) return true;
+
+        return false;
     }
 
     function highlightPackage(value) {
