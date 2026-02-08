@@ -1133,6 +1133,17 @@
         return { title: raw, context: '' };
     }
 
+    function shouldSkipPackage(name) {
+        const { title } = splitPackageName(name);
+        if (!title) return true;
+
+        let normalized = title.trim().toUpperCase();
+        normalized = normalized.replace(/^\d{1,2}[./]\d{1,2}\s*/g, '');
+
+        const blockedPrefixes = ['ALA-JED', 'BUS', 'JED', 'ALA', 'MAD', 'NQZ'];
+        return blockedPrefixes.some(prefix => normalized.startsWith(prefix));
+    }
+
     function highlightPackage(value) {
         if (!pkgList) return;
         pkgList.querySelectorAll('.package-card').forEach(card => {
@@ -1255,12 +1266,21 @@
             const res = await r.json();
 
             if (res.found) {
+                const filtered = (res.data || []).filter(i => !shouldSkipPackage(i.n));
+                if (!filtered.length) {
+                    sel.innerHTML = '<option>❌ Нет подходящих пакетов</option>';
+                    sel.disabled = true;
+                    packageCache = [];
+                    renderPackageList([], '');
+                    return;
+                }
+
                 sel.disabled = false;
-                sel.innerHTML = res.data.map(i => `<option value="${i.n}" data-sheet="${i.s}" data-table="${i.t}">${i.n}</option>`).join('');
-                sel.value = res.data[0].n;
-                document.getElementById('sheet_name_hidden').value = res.data[0].s;
-                document.getElementById('table_id_hidden').value = res.data[0].t;
-                packageCache = res.data;
+                sel.innerHTML = filtered.map(i => `<option value="${i.n}" data-sheet="${i.s}" data-table="${i.t}">${i.n}</option>`).join('');
+                sel.value = filtered[0].n;
+                document.getElementById('sheet_name_hidden').value = filtered[0].s;
+                document.getElementById('table_id_hidden').value = filtered[0].t;
+                packageCache = filtered;
                 renderPackageList(packageCache, sel.value);
             } else {
                 sel.innerHTML = '<option>❌ Нет рейсов</option>';
