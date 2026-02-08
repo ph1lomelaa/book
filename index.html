@@ -1138,7 +1138,10 @@
         if (!title) return true;
 
         let normalized = title.trim().toUpperCase();
-        normalized = normalized.replace(/^\d{1,2}[./]\d{1,2}\s*/g, '');
+        // Убираем ведущие даты/диапазоны дат, чтобы фильтр работал по маршруту
+        normalized = normalized
+            .replace(/^\d{1,2}[./]\d{1,2}\s*[-–—]\s*\d{1,2}[./]\d{1,2}\s*/g, '')
+            .replace(/^\d{1,2}[./]\d{1,2}\s*/g, '');
 
         const blockedPrefixes = ['ALA-JED', 'BUS', 'JED', 'ALA', 'MAD', 'NQZ'];
         return blockedPrefixes.some(prefix => normalized.startsWith(prefix));
