@@ -290,7 +290,6 @@
             font-style: italic;
             color: #2B7DD6;
         }
-        
         /* Карточки паломников */
         .tourist-card {
             background: var(--bg-card);
@@ -2230,29 +2229,12 @@
         window.scrollTo(0, 0);
     }
 
-    const TRANSFORM_HINTS = {
-        'double': [
-            '1 пустой Quadro → 2 Double',
-            '2 пустых Triple → 3 Double',
-        ],
-        'triple': [
-            '2 пустых Quadro → 2 Triple + 1 Double',
-            '3 пустых Double → 2 Triple',
-        ],
-        'quadro': [
-            '2 пустых Double → 1 Quadro',
-        ],
-        'single': [
-            '1 пустой Double → 2 Single',
-            '1 пустой Triple → 1 Double + 1 Single',
-        ],
-    };
-
-    function showTransformHint(variants) {
+    // Подсказка показывается ТОЛЬКО когда бэкенд подтвердил, что авторазмещение
+    // реально применит трансформацию (transform != null). Иначе она скрыта.
+    function showTransformHint(variant) {
         const el = document.getElementById('transform_hint');
-        if (!variants || variants.length === 0) { el.style.display = 'none'; return; }
-        const lines = variants.map(v => `• ${v}`).join('<br>');
-        el.innerHTML = `<b>ℹ️ Свободных мест нет, но автоматическое размещение может создать их:</b>${lines}<span class="hint-action">→ Для этого выберите «Автоматически»</span>`;
+        if (!variant) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        el.innerHTML = `<b>ℹ️ Свободных мест нет, но автоматическое размещение создаст их:</b>• ${variant}<span class="hint-action">→ Для этого выберите «Автоматически»</span>`;
         el.style.display = 'block';
     }
 
@@ -2292,8 +2274,8 @@
                 showTransformHint(null);
             } else {
                 sel.innerHTML = '<option value="">Нет мест для подселения</option>';
-                const roomType = (document.getElementById('room_type').value || '').toLowerCase();
-                showTransformHint(TRANSFORM_HINTS[roomType] || []);
+                // Подсказку показываем ТОЛЬКО если бэкенд подтвердил трансформацию
+                showTransformHint(res.transform || null);
             }
         } catch(e) { sel.innerHTML = '<option>Ошибка загрузки</option>'; }
     }
