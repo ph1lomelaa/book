@@ -1306,7 +1306,7 @@
 
                         const createdDate = booking.created_at ? new Date(booking.created_at).toLocaleDateString('ru-RU') : '-';
                         const passportImage = booking.passport_image_path
-                            ? `<img src="${API_BASE}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1" class="passport-image" alt="Паспорт" onerror="this.style.display='none'">`
+                            ? `<img data-access-src="${API_BASE}/api/care/passport-photo/${booking.id}?ngrok-skip-browser-warning=1" class="passport-image" alt="Паспорт" onerror="this.style.display='none'">`
                             : '';
 
                         html += `
